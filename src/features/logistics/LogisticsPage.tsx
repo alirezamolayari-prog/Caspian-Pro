@@ -1,35 +1,28 @@
-import { AlertTriangle, CalendarClock, Lock, ShieldOff, Truck, Unlock } from 'lucide-react';
+import { CalendarClock } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { PageHeader } from '../../components/layout/Header';
+import { SuccessPanel } from '../../components/layout/Success';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
-import { Card, SectionTitle } from '../../components/ui/Card';
-import { Segmented, Switch } from '../../components/ui/Choice';
-import { Alert } from '../../components/ui/Feedback';
+import { SectionTitle } from '../../components/ui/Card';
+import { RadioCard, Segmented } from '../../components/ui/Choice';
 import { Field, TextInput } from '../../components/ui/Field';
-import { cx } from '../../components/ui/cx';
 import { GATES, SLOT_MINUTES, gateTitle, type GateId } from '../../data/catalog';
 import { focusFirstInvalid, useRequestSubmit } from '../../hooks/useRequestSubmit';
 import { toFa } from '../../lib/persian';
-import { navigate } from '../../lib/router';
 import { isIranMobile, normalizeMobile } from '../../lib/validators';
-import { MAX_REJECTIONS, useLoading } from '../../store/loading';
-import { useUi } from '../../store/ui';
+
+type Day = 'today' | 'tomorrow';
 
 export function LogisticsPage() {
-  const { session, rejections, locked, setLocked, adminReactivate, start } = useLoading();
-  const toast = useUi((s) => s.toast);
-  const { submit, submitting } = useRequestSubmit('logistics');
+  const { submit, submitting, ticket, reset } = useRequestSubmit('logistics');
   const [gate, setGate] = useState<GateId | null>(null);
+  const [day, setDay] = useState<Day>('today');
   const [minutes, setMinutes] = useState<number>(30);
   const [mobile, setMobile] = useState('');
   const [touched, setTouched] = useState({ gate: false, mobile: false });
   const formRef = useRef<HTMLFormElement>(null);
 
-  const occupancy = (id: GateId) => {
-    const g = GATES.find((x) => x.id === id)!;
-    return g.busy + (session?.gate === id ? 1 : 0);
-  };
   const gateError = touched.gate && !gate ? 'یک درب بارگیری انتخاب کنید.' : '';
   const mobileError =
     touched.mobile && !isIranMobile(mobile)
@@ -40,163 +33,96 @@ export function LogisticsPage() {
     e.preventDefault();
     setTouched({ gate: true, mobile: true });
     if (!gate || !isIranMobile(mobile)) {
-      if (!gate) formRef.current?.querySelector<HTMLElement>('[role="radio"]')?.focus();
+      if (!gate)
+        formRef.current?.querySelector<HTMLElement>('[role="radio"]:not([disabled])')?.focus();
       else focusFirstInvalid(formRef.current);
       return;
     }
-    const driver = normalizeMobile(mobile);
-    const t = await submit(`نوبت بارگیری – ${gateTitle(gate)}`, [
+    const ok = await submit(`نوبت بارگیری – ${gateTitle(gate)}`, [
+      day === 'today' ? 'امروز' : 'فردا',
       `${toFa(minutes)} دقیقه`,
-      `راننده ${toFa(driver)}`,
+      `راننده ${toFa(normalizeMobile(mobile))}`,
     ]);
-    if (t) {
-      start(gate, minutes, driver);
-      toast({
-        tone: 'info',
-        title: 'تایمر بارگیری شروع شد',
-        body: `${gateTitle(gate)} – ${toFa(minutes)} دقیقه`,
-      });
-      navigate('home');
+    if (ok) {
+      setGate(null);
+      setMobile('');
+      setTouched({ gate: false, mobile: false });
     }
   };
 
   return (
     <>
-      <PageHeader back title="بارگیری و تخلیه" subtitle="رزرو هوشمند نوبت و مدیریت تردد" />
-      <div className="animate-view flex flex-col gap-4 px-4 pt-4">
-        <Alert tone={locked ? 'danger' : 'warning'} icon={AlertTriangle} title="سیستم جریمه خودکار">
-          اگر <strong>۲ درخواست تمدید</strong> توسط حراست رد شود، دسترسی بارگیری غرفه به‌طور خودکار
-          قفل می‌شود و فقط مدیریت کاسپین می‌تواند آن را دوباره فعال کند.
-          <span className="mt-2 flex items-center gap-2">
-            <Badge tone={rejections > 0 ? 'danger' : 'neutral'}>
-              اخطارها: {toFa(rejections)} از {toFa(MAX_REJECTIONS)}
-            </Badge>
-          </span>
-        </Alert>
-
-        <Card>
-          <Switch
-            checked={locked}
-            onChange={setLocked}
-            label="پیش‌نمایش حالت قفل (دمو)"
-            description="برای دیدن صفحه‌ای که پس از ۲ رد تمدید نمایش داده می‌شود"
+      <PageHeader back title="بارگیری و تخلیه" subtitle="رزرو نوبت درب‌های بارگیری" />
+      <div className="animate-view flex flex-col gap-4 px-4 pt-2">
+        {ticket ? (
+          <SuccessPanel
+            ticket={ticket}
+            message="نوبت شما برای حراست ارسال شد. نتیجه را از اعلان‌ها ببینید."
+            onNew={reset}
           />
-        </Card>
-
-        {locked ? (
-          <Card className="flex flex-col items-center gap-3 border-danger/40 py-8 text-center">
-            <span className="inline-flex size-16 items-center justify-center rounded-full bg-danger-soft text-danger">
-              <Lock className="size-8" aria-hidden />
-            </span>
-            <h2 className="text-lg font-extrabold text-ink">دسترسی بارگیری قفل شد</h2>
-            <p className="text-sm leading-7 text-ink-2">
-              به دلیل رد شدن ۲ درخواست تمدید توسط حراست، ثبت نوبت جدید برای غرفه شما غیرفعال است.
-              برای فعال‌سازی مجدد با مدیریت پاساژ تماس بگیرید.
-            </p>
-            <Badge tone="danger" icon={ShieldOff}>
-              نیاز به فعال‌سازی مدیر
-            </Badge>
-            <Button variant="secondary" icon={Unlock} onClick={adminReactivate}>
-              فعال‌سازی مجدد توسط مدیر (دمو)
-            </Button>
-          </Card>
-        ) : session ? (
-          <Card className="flex flex-col items-center gap-3 py-6 text-center">
-            <Truck className="size-8 text-gold-ink" aria-hidden />
-            <p className="font-extrabold text-ink">
-              یک نوبت فعال در {gateTitle(session.gate)} دارید
-            </p>
-            <p className="text-sm text-ink-2">برای رزرو نوبت جدید ابتدا نوبت فعلی را تسویه کنید.</p>
-            <Button onClick={() => navigate('home')}>مشاهده تایمر</Button>
-          </Card>
         ) : (
           <form ref={formRef} onSubmit={onSubmit} noValidate className="flex flex-col gap-5">
             <section aria-labelledby="gate-title">
-              <SectionTitle>
-                <span id="gate-title">انتخاب درب</span>
-              </SectionTitle>
-              <div
-                role="radiogroup"
-                aria-labelledby="gate-title"
-                aria-describedby={gateError ? 'gate-err' : undefined}
-                className="flex flex-col gap-2"
-              >
+              <SectionTitle id="gate-title">انتخاب درب</SectionTitle>
+              <div role="radiogroup" aria-labelledby="gate-title" className="flex flex-col gap-2">
                 {GATES.map((g) => {
-                  const used = occupancy(g.id);
-                  const full = used >= g.capacity;
-                  const checked = gate === g.id;
+                  const full = g.busy >= g.capacity;
                   return (
-                    <button
+                    <RadioCard
                       key={g.id}
-                      type="button"
-                      role="radio"
-                      aria-checked={checked}
+                      checked={gate === g.id}
                       disabled={full}
-                      onClick={() => {
+                      onSelect={() => {
                         setGate(g.id);
                         setTouched((t) => ({ ...t, gate: true }));
                       }}
-                      className={cx(
-                        'theme-fade flex min-h-16 items-center gap-3 rounded-2xl border bg-surface p-4 text-start shadow-card transition-transform duration-150 active:scale-[0.98] cursor-pointer disabled:cursor-not-allowed disabled:opacity-60',
-                        checked ? 'border-gold ring-2 ring-gold/40' : 'border-line',
-                      )}
-                    >
-                      <span
-                        aria-hidden
-                        className={cx(
-                          'inline-flex size-5 shrink-0 items-center justify-center rounded-full border-2',
-                          checked ? 'border-gold' : 'border-line',
-                        )}
-                      >
-                        {checked && <span className="size-2.5 rounded-full bg-gold" />}
-                      </span>
-                      <span className="flex min-w-0 flex-1 flex-col gap-1.5">
-                        <span className="font-bold text-ink">{g.title}</span>
-                        <span className="flex gap-1" aria-hidden>
-                          {Array.from({ length: g.capacity }).map((_, i) => (
-                            <span
-                              key={i}
-                              className={cx(
-                                'h-1.5 w-8 rounded-full',
-                                i < used ? 'bg-gold' : 'bg-surface-2 ring-1 ring-line',
-                              )}
-                            />
-                          ))}
-                        </span>
-                      </span>
-                      <span className="flex flex-col items-end gap-1">
+                      aside={
                         <Badge tone={full ? 'danger' : 'success'}>{full ? 'تکمیل' : 'آزاد'}</Badge>
-                        <span className="tabular text-xs text-ink-2">
-                          ظرفیت: {toFa(used)} از {toFa(g.capacity)}
-                        </span>
+                      }
+                    >
+                      <span className="font-semibold text-ink">{g.title}</span>
+                      <span className="tabular text-[13px] text-ink-2">
+                        ظرفیت: {toFa(g.busy)} از {toFa(g.capacity)} در حال استفاده
                       </span>
-                    </button>
+                    </RadioCard>
                   );
                 })}
               </div>
               {gateError && (
-                <p id="gate-err" role="alert" className="mt-2 px-1 text-xs font-bold text-danger">
+                <p role="alert" className="mt-2 px-2 text-[13px] font-semibold text-danger">
                   {gateError}
                 </p>
               )}
             </section>
 
-            <section aria-labelledby="slot-title" className="flex flex-col gap-2">
-              <p id="slot-title" className="px-1 text-sm font-bold text-ink">
-                مدت نوبت
-              </p>
+            <div className="flex flex-col gap-2">
+              <p className="px-2 text-[15px] font-semibold text-ink">روز</p>
+              <Segmented<Day>
+                label="روز نوبت"
+                value={day}
+                onChange={setDay}
+                options={[
+                  { value: 'today', label: 'امروز' },
+                  { value: 'tomorrow', label: 'فردا' },
+                ]}
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <p className="px-2 text-[15px] font-semibold text-ink">مدت نوبت</p>
               <Segmented<number>
                 label="مدت نوبت بارگیری"
                 value={minutes}
                 onChange={setMinutes}
+                columns={2}
                 options={SLOT_MINUTES.map((m) => ({ value: m, label: `${toFa(m)} دقیقه` }))}
               />
-            </section>
+            </div>
 
             <Field
               label="شماره موبایل راننده"
               required
-              helper="باید در بانک رانندگان تاییدشده کاسپین ثبت شده باشد."
+              helper="باید در بانک رانندگان کاسپین ثبت شده باشد."
               error={mobileError}
             >
               {({ id, describedBy, invalid }) => (
@@ -219,8 +145,8 @@ export function LogisticsPage() {
               )}
             </Field>
 
-            <Button type="submit" size="lg" block icon={CalendarClock} loading={submitting}>
-              ثبت نوبت و شروع بارگیری
+            <Button type="submit" block icon={CalendarClock} loading={submitting}>
+              ثبت نوبت
             </Button>
           </form>
         )}

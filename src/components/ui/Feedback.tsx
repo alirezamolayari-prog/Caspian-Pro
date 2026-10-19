@@ -5,11 +5,11 @@ import { cx } from './cx';
 export function ProgressBar({
   value,
   label,
-  tone = 'gold',
+  tone = 'primary',
 }: {
   value: number;
   label: string;
-  tone?: 'gold' | 'danger' | 'warning';
+  tone?: 'primary' | 'warning' | 'danger';
 }) {
   const pct = Math.round(Math.min(1, Math.max(0, value)) * 100);
   return (
@@ -19,14 +19,14 @@ export function ProgressBar({
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={pct}
-      className="h-2.5 w-full overflow-hidden rounded-full bg-white/10 ring-1 ring-white/10"
+      className="h-2 w-full overflow-hidden rounded-full bg-field"
     >
       <div
         className={cx(
-          'progress-shimmer h-full rounded-full transition-[width] duration-1000 ease-linear',
-          tone === 'gold' && 'bg-gradient-to-l from-[#F3DC8B] via-gold to-[#9C7A1C]',
-          tone === 'warning' && 'bg-[#F59E0B]',
-          tone === 'danger' && 'bg-[#EF4444]',
+          'h-full rounded-full transition-[width] duration-500',
+          tone === 'primary' && 'bg-primary',
+          tone === 'warning' && 'bg-warning',
+          tone === 'danger' && 'bg-danger',
         )}
         style={{ width: `${pct}%` }}
       />
@@ -46,12 +46,12 @@ export function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-line px-6 py-10 text-center">
-      <span className="inline-flex size-14 items-center justify-center rounded-2xl bg-gold-soft text-gold-ink">
-        <Icon className="size-7" aria-hidden />
+    <div className="flex flex-col items-center gap-3 rounded-[20px] border border-line bg-card px-6 py-10 text-center">
+      <span className="inline-flex size-14 items-center justify-center rounded-2xl bg-primary-soft text-on-primary-soft">
+        <Icon className="size-7" strokeWidth={1.75} aria-hidden />
       </span>
-      <p className="font-extrabold text-ink">{title}</p>
-      {body && <p className="text-sm text-ink-2">{body}</p>}
+      <p className="font-semibold text-ink">{title}</p>
+      {body && <p className="text-[13px] text-ink-2">{body}</p>}
       {action}
     </div>
   );
@@ -69,20 +69,20 @@ export function Alert({
   children?: React.ReactNode;
 }) {
   const tones = {
-    warning: 'border-warning/40 bg-warning-soft text-warning',
-    danger: 'border-danger/40 bg-danger-soft text-danger',
-    info: 'border-info/30 bg-info-soft text-info',
-    success: 'border-success/30 bg-success-soft text-success',
+    warning: 'bg-warning-soft text-warning',
+    danger: 'bg-danger-soft text-danger',
+    info: 'bg-info-soft text-info',
+    success: 'bg-success-soft text-success',
   } as const;
   return (
     <div
-      className={cx('flex gap-3 rounded-2xl border p-4', tones[tone])}
+      className={cx('flex gap-3 rounded-[20px] p-4', tones[tone])}
       role={tone === 'danger' ? 'alert' : 'note'}
     >
       <Icon className="mt-0.5 size-5 shrink-0" aria-hidden />
       <div className="flex flex-col gap-1">
-        <p className="text-sm font-extrabold">{title}</p>
-        {children && <div className="text-sm leading-7 text-ink">{children}</div>}
+        <p className="font-semibold">{title}</p>
+        {children && <div className="text-[13px] leading-6">{children}</div>}
       </div>
     </div>
   );
@@ -90,7 +90,7 @@ export function Alert({
 
 const TOAST_ICON = { success: CheckCircle2, error: XCircle, info: Info } as const;
 
-/** Toast stack above the bottom nav; announced politely, never steals focus. */
+/** Floating snackbar above the bottom bar; announced politely, never steals focus. */
 export function Toaster() {
   const toasts = useUi((s) => s.toasts);
   const dismiss = useUi((s) => s.dismissToast);
@@ -106,28 +106,22 @@ export function Toaster() {
           <div
             key={t.id}
             role="status"
-            className="animate-sheet pointer-events-auto flex items-start gap-3 rounded-2xl border border-line bg-surface p-3 shadow-card"
+            className="animate-sheet pointer-events-auto flex items-center gap-3 rounded-2xl bg-primary py-2 ps-4 pe-1 text-on-primary shadow-lg"
           >
-            <Icon
-              className={cx(
-                'mt-0.5 size-5 shrink-0',
-                t.tone === 'success' && 'text-success',
-                t.tone === 'error' && 'text-danger',
-                t.tone === 'info' && 'text-gold-ink',
+            <Icon className="size-5 shrink-0" aria-hidden />
+            <div className="min-w-0 flex-1 py-1">
+              <p className="text-[15px] font-semibold">{t.title}</p>
+              {t.body && (
+                <p className="text-[13px] opacity-90 [overflow-wrap:anywhere]">{t.body}</p>
               )}
-              aria-hidden
-            />
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-extrabold text-ink">{t.title}</p>
-              {t.body && <p className="text-xs text-ink-2 [overflow-wrap:anywhere]">{t.body}</p>}
             </div>
             <button
               type="button"
               onClick={() => dismiss(t.id)}
               aria-label="بستن پیام"
-              className="-m-2 inline-flex size-11 items-center justify-center rounded-xl text-ink-2 cursor-pointer"
+              className="inline-flex size-12 shrink-0 items-center justify-center rounded-full cursor-pointer"
             >
-              <X className="size-4" aria-hidden />
+              <X className="size-5" aria-hidden />
             </button>
           </div>
         );

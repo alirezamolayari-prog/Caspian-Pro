@@ -1,25 +1,29 @@
 # کاسپین پرو (Caspian Pro)
 
-**سامانه هوشمند خدمات غرفه‌داران کاسپین** – اپلیکیشن وب پیش‌رونده (PWA) برای حدود ۸۰ غرفه‌دار پاساژ کاسپین. فارسی، راست‌به‌چپ، با پوسته روشن و تیره.
+**سامانه خدمات غرفه‌داران کاسپین** – اپلیکیشن وب پیش‌رونده (PWA) ساده برای حدود ۸۰ غرفه‌دار پاساژ کاسپین. فارسی، راست‌به‌چپ، هم‌شکل با اپ Caspian Owner؛ پوسته روشن (اسلیت) و تیره (خاکستری).
 
-> نسخه فعلی با داده‌های نمونه (mock) کار می‌کند. اتصال به سرور واقعی فقط با جایگزینی `src/api/mock.ts` انجام می‌شود.
+> نسخه فعلی با داده‌های نمونه (mock) کار می‌کند. اتصال به سرور فقط با جایگزینی `src/api/mock.ts` و برای پارکینگ `src/api/parking.ts` انجام می‌شود.
 
-## امکانات
+## بخش‌ها
 
-| بخش             | کار                                                                                                                                      |
-| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| خانه            | سلام و نام غرفه، جستجوی خدمات، تایمر زنده بارگیری (تمدید / تسویه و خروج)، ۷ خدمت، آخرین درخواست‌ها                                       |
-| اعلان‌ها        | تایید مجوز خروج کالا، هشدار پایان زمان بارگیری، اطلاعیه‌های مدیریت                                                                       |
-| خدمات کاسپین    | انبار و کالا، دکوراسیون، تاسیسات و برق؛ انتخاب چندگانه و کد پیگیری                                                                       |
-| بارگیری و تخلیه | درب اسدنژاد (۱)، صفرخانی (۳)، پارکینگ اختصاصی (۱) با ظرفیت زنده؛ ۱۵ تا ۶۰ دقیقه؛ موبایل راننده؛ قفل خودکار پس از ۲ رد تمدید (+ کلید دمو) |
-| رزرو فضای فروش  | انتخاب فضا، تاریخ شمسی، مدت، شرح کلکسیون                                                                                                 |
-| تبلیغات         | ۴ کانال (دیجیتال، راهروها، پارکینگ، آسانسورها)، عنوان، مدت، توضیحات، لینک                                                                |
-| حراست           | کارت تردد موقت با QR (قابل دانلود)، دکمه اضطراری SOS با تایید دومرحله‌ای                                                                 |
-| خرابی مشاعات    | آسانسور، پله‌برقی، روشنایی، تهویه؛ بخش و طبقه؛ عکس                                                                                       |
-| پشتیبانی        | تماس سریع، قوانین پاساژ، پیام به پشتیبانی                                                                                                |
-| دسترسی‌ها       | راهنمای بازیابی دسترسی مکان و اعلان در iOS و اندروید (شامل مرحله دوم «همیشه» در iOS)                                                     |
+صفحه خانه بخش‌ها را در گروه‌های جدا نشان می‌دهد:
 
-ماژول فاکتورساز عمداً در محصول نیست.
+| گروه               | بخش                | کار                                                                                              |
+| ------------------ | ------------------ | ------------------------------------------------------------------------------------------------ |
+| درخواست‌ها و خدمات | خدمات کاسپین       | انبار و کالا، دکوراسیون، تاسیسات و برق؛ انتخاب چندگانه و کد پیگیری                               |
+|                    | گزارش خرابی مشاعات | آسانسور، پله‌برقی، روشنایی، تهویه؛ بخش و طبقه؛ عکس                                               |
+| تردد و خودرو       | بارگیری و تخلیه    | رزرو نوبت: درب (با ظرفیت)، روز، مدت، موبایل راننده                                               |
+|                    | پارکینگ            | فقط مشاهده: روزهای باقی‌مانده اشتراک، تاریخ شروع و پایان، پلاک‌ها، ورود و خروج اخیر. بدون پرداخت |
+| امنیت              | حراست و انتظامات   | فراخوان اضطراری با تایید دومرحله‌ای، کارت تردد موقت با QR                                        |
+| فروش و تبلیغات     | رزرو فضای فروش     | انتخاب فضا، تاریخ شمسی، مدت، شرح کلکسیون                                                         |
+|                    | درخواست تبلیغات    | ۴ کانال، عنوان، مدت، توضیحات، لینک                                                               |
+| راهنما             | پشتیبانی و قوانین  | تماس، قوانین پاساژ، پیام به پشتیبانی                                                             |
+
+همچنین: درخواست‌های من، اعلان‌ها، پروفایل (پوسته روشن/تیره/سیستم، وضعیت اعلان‌ها). در اولین باز شدن برنامه (و اولین باز شدن پس از نصب) پنجره «اجازه ارسال اعلان» نمایش داده می‌شود.
+
+### اتصال پارکینگ
+
+`src/api/parking.ts` یک رابط `ParkingSource` با متد `getSubscription()` دارد. برای وصل کردن نرم‌افزار پارکینگ، همین رابط را با API آن پیاده کنید و با `setParkingSource()` جایگزین کنید. هیچ درگاه پرداختی در برنامه نیست.
 
 ## اجرا
 
@@ -45,22 +49,24 @@ npm run test:e2e     # Playwright: سه اندازه صفحه، هر دو پوس
 - **وب / iPhone:** محتوای `dist/` را روی هر هاست HTTPS قرار دهید. در Safari: اشتراک‌گذاری ← «افزودن به صفحه اصلی». اعلان‌ها در iOS از نسخه ۱۶٫۴ و فقط برای برنامه نصب‌شده کار می‌کنند.
 - **اندروید:** همین آدرس را با یک Trusted Web Activity (مثلاً با Bubblewrap) بسته‌بندی کنید؛ `manifest.webmanifest` و آیکن maskable آماده است. فایل `assetlinks.json` باید روی دامنه قرار بگیرد.
 - فونت وزیرمتن داخل برنامه بسته‌بندی شده و به اینترنت یا Google Fonts نیاز ندارد.
+- اعلان در آیفون فقط برای برنامه نصب‌شده (افزودن به صفحه اصلی) کار می‌کند؛ برنامه این را به کاربر می‌گوید.
 
 ## پیش‌نمایش Claude
 
-`node scripts/build-artifact.mjs` همین برنامه را در یک فایل HTML (`dist-artifact/caspian-pro.html`) می‌سازد: React از cdnjs و فونت از Google Fonts، بقیه داخل فایل. در پیش‌نمایش، service worker و دانلود کارت تردد غیرفعال است.
+`node scripts/build-artifact.mjs` همین برنامه را در یک فایل HTML (`dist-artifact/caspian-pro.html`) می‌سازد: React از cdnjs و فونت از Google Fonts، بقیه داخل فایل. در پیش‌نمایش، service worker و ذخیره کارت تردد غیرفعال است.
 
 ---
 
 ## English summary
 
-Mobile-first PWA for Caspian Mall tenants. **Stack:** Vite 8, React 19, TypeScript (strict), Tailwind CSS 4, Zustand (persisted), lucide-react, `qrcode`, vite-plugin-pwa (Workbox). Tests: Vitest + Testing Library (unit, store, component, WCAG contrast of design tokens) and Playwright + axe-core (RTL, no horizontal scroll, touch targets, offline reload, manifest).
+Simple mobile-first PWA for Caspian Mall tenants, styled like the Caspian Owner app (slate light theme, neutral gray dark theme). **Stack:** Vite 8, React 19, TypeScript (strict), Tailwind CSS 4, Zustand (persisted), lucide-react, `qrcode`, vite-plugin-pwa (Workbox). Tests: Vitest + Testing Library (unit, store, component, WCAG contrast of design tokens) and Playwright + axe-core (RTL, no horizontal scroll, touch targets, offline reload, manifest).
 
 ```
 src/
   api/mock.ts          mock backend (swap for HTTP client)
+  api/parking.ts       ParkingSource interface + mock (read-only parking subscription)
   data/catalog.ts      store info, services, gates, zones, channels, rules
-  store/               zustand stores: ui/theme, tickets, notifications, loading, security
+  store/               zustand stores: ui/theme, tickets, notifications, security
   lib/                 Persian digits & Jalali dates, validators, hash router, safe storage
   components/          ui kit (Button, Field, Segmented, Modal, Toaster…) + layout (Header, BottomNav)
   features/<module>/   one folder per screen

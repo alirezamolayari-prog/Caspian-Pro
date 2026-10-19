@@ -19,7 +19,7 @@ for (const t of targets) {
   const body = t.square ? svg.replace('rx="112"', 'rx="0"') : svg;
   await page.setViewportSize({ width: t.size, height: t.size });
   await page.setContent(
-    `<html><body style="margin:0;background:${t.square ? '#0F172A' : 'transparent'};display:grid;place-items:center;width:${t.size}px;height:${t.size}px">
+    `<html><body style="margin:0;background:${t.square ? '#334155' : 'transparent'};display:grid;place-items:center;width:${t.size}px;height:${t.size}px">
       <div style="width:${inner}px;height:${inner}px">${body.replace('<svg ', '<svg width="100%" height="100%" ')}</div></body></html>`,
   );
   const buf = await page.screenshot({ omitBackground: !t.square });

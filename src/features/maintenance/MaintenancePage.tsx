@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { PageHeader } from '../../components/layout/Header';
 import { SuccessPanel } from '../../components/layout/Success';
 import { Button } from '../../components/ui/Button';
-import { SectionTitle } from '../../components/ui/Card';
+import { IconTile, SectionTitle } from '../../components/ui/Card';
 import { Segmented } from '../../components/ui/Choice';
 import { Field, Select, TextArea } from '../../components/ui/Field';
 import { cx } from '../../components/ui/cx';
@@ -111,7 +111,7 @@ export function MaintenancePage() {
   return (
     <>
       <PageHeader back title="گزارش خرابی مشاعات" subtitle="آسانسور، پله‌برقی، روشنایی و تهویه" />
-      <div className="animate-view flex flex-col gap-4 px-4 pt-4">
+      <div className="animate-view flex flex-col gap-4 px-4 pt-2">
         {ticket ? (
           <SuccessPanel
             ticket={ticket}
@@ -121,9 +121,7 @@ export function MaintenancePage() {
         ) : (
           <form ref={formRef} onSubmit={onSubmit} noValidate className="flex flex-col gap-5">
             <section aria-labelledby="cat-title">
-              <SectionTitle>
-                <span id="cat-title">نوع خرابی</span>
-              </SectionTitle>
+              <SectionTitle id="cat-title">نوع خرابی</SectionTitle>
               <div role="radiogroup" aria-labelledby="cat-title" className="grid grid-cols-2 gap-2">
                 {MAINTENANCE_CATEGORIES.map((c) => {
                   const Icon = c.icon;
@@ -139,25 +137,18 @@ export function MaintenancePage() {
                         setTouched((t) => ({ ...t, category: true }));
                       }}
                       className={cx(
-                        'theme-fade flex min-h-20 items-center gap-3 rounded-2xl border bg-surface p-3 text-start shadow-card transition-transform duration-150 active:scale-95 cursor-pointer',
-                        checked ? 'border-gold ring-2 ring-gold/40' : 'border-line',
+                        'theme-fade flex min-h-20 items-center gap-3 rounded-[20px] border bg-card p-3 text-start transition-colors cursor-pointer',
+                        checked ? 'border-primary ring-1 ring-primary' : 'border-line hover:bg-row',
                       )}
                     >
-                      <span
-                        className={cx(
-                          'inline-flex size-11 shrink-0 items-center justify-center rounded-xl',
-                          checked ? 'bg-gold text-on-gold' : 'bg-gold-soft text-gold-ink',
-                        )}
-                      >
-                        <Icon className="size-5" aria-hidden />
-                      </span>
-                      <span className="text-sm font-bold text-ink">{c.title}</span>
+                      <IconTile icon={Icon} size="sm" />
+                      <span className="text-[15px] font-semibold text-ink">{c.title}</span>
                     </button>
                   );
                 })}
               </div>
               {err('category') && (
-                <p role="alert" className="mt-2 px-1 text-xs font-bold text-danger">
+                <p role="alert" className="mt-2 px-2 text-[13px] font-semibold text-danger">
                   {err('category')}
                 </p>
               )}
@@ -203,7 +194,7 @@ export function MaintenancePage() {
             </div>
 
             <div className="flex flex-col gap-2">
-              <p className="px-1 text-sm font-bold text-ink">اولویت</p>
+              <p className="px-2 text-[15px] font-semibold text-ink">اولویت</p>
               <Segmented<Priority>
                 label="اولویت"
                 value={priority}
@@ -255,7 +246,7 @@ export function MaintenancePage() {
                 {photos.map((p) => (
                   <div
                     key={p.id}
-                    className="relative aspect-square overflow-hidden rounded-2xl border border-line bg-surface-2"
+                    className="relative aspect-square overflow-hidden rounded-2xl border border-line bg-field"
                   >
                     <img
                       src={p.url}
@@ -266,7 +257,7 @@ export function MaintenancePage() {
                       type="button"
                       onClick={() => removePhoto(p.id)}
                       aria-label={`حذف عکس ${p.name}`}
-                      className="absolute end-1 top-1 inline-flex size-9 items-center justify-center rounded-full bg-scrim text-white cursor-pointer"
+                      className="absolute end-1 top-1 inline-flex size-10 items-center justify-center rounded-full bg-card/90 text-ink cursor-pointer"
                     >
                       <X className="size-4" aria-hidden />
                     </button>
@@ -275,14 +266,14 @@ export function MaintenancePage() {
                 {photos.length < MAX_PHOTOS && (
                   <label
                     htmlFor="photo-input"
-                    className="theme-fade flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-gold/50 bg-gold-soft text-gold-ink transition-transform duration-150 active:scale-95"
+                    className="theme-fade flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-outline bg-card text-ink-2 transition-colors hover:bg-row"
                   >
                     {photos.length === 0 ? (
                       <Camera className="size-7" aria-hidden />
                     ) : (
                       <ImagePlus className="size-7" aria-hidden />
                     )}
-                    <span className="text-xs font-bold">
+                    <span className="text-[13px] font-semibold">
                       {photos.length === 0 ? 'گرفتن عکس' : 'افزودن'}
                     </span>
                   </label>
@@ -290,7 +281,7 @@ export function MaintenancePage() {
               </div>
             </section>
 
-            <Button type="submit" size="lg" block icon={Wrench} loading={submitting}>
+            <Button type="submit" block icon={Wrench} loading={submitting}>
               ثبت گزارش خرابی
             </Button>
           </form>

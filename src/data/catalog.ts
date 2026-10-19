@@ -1,6 +1,7 @@
 import {
   ArrowUpDown,
   Box,
+  Car,
   Briefcase,
   ConciergeBell,
   Fan,
@@ -27,14 +28,20 @@ export const STORE = {
 } as const;
 
 export type ModuleId =
-  'services' | 'logistics' | 'security' | 'booth' | 'advertising' | 'maintenance' | 'support';
+  | 'services'
+  | 'logistics'
+  | 'parking'
+  | 'security'
+  | 'booth'
+  | 'advertising'
+  | 'maintenance'
+  | 'support';
 
 export interface ServiceTile {
   id: ModuleId;
   title: string;
   subtitle: string;
   icon: LucideIcon;
-  keywords: string;
 }
 
 export const SERVICE_TILES: ServiceTile[] = [
@@ -43,51 +50,61 @@ export const SERVICE_TILES: ServiceTile[] = [
     title: 'خدمات کاسپین',
     subtitle: 'انبار، دکوراسیون، تاسیسات',
     icon: ConciergeBell,
-    keywords: 'کالا انبار ورود خروج نظافت برق تهویه دکوراسیون کارتن',
   },
   {
     id: 'logistics',
     title: 'بارگیری و تخلیه',
     subtitle: 'رزرو نوبت درب‌ها',
     icon: Truck,
-    keywords: 'بار درب صفرخانی اسدنژاد پارکینگ راننده نوبت',
+  },
+  {
+    id: 'parking',
+    title: 'پارکینگ',
+    subtitle: 'وضعیت اشتراک پارکینگ',
+    icon: Car,
   },
   {
     id: 'security',
     title: 'حراست و انتظامات',
     subtitle: 'کارت تردد و اضطراری',
     icon: ShieldCheck,
-    keywords: 'کارت تردد پرسنل QR اضطراری حراست',
   },
   {
     id: 'booth',
     title: 'رزرو فضای فروش',
     subtitle: 'لابی و فضای ویژه',
     icon: Store,
-    keywords: 'غرفه لابی آتریوم فروش ویژه کلکسیون',
   },
   {
     id: 'advertising',
     title: 'درخواست تبلیغات',
     subtitle: 'دیجیتال و محیطی',
     icon: Megaphone,
-    keywords: 'تبلیغ کمپین اینستاگرام نمایشگر آسانسور پارکینگ',
   },
   {
     id: 'maintenance',
     title: 'گزارش خرابی مشاعات',
     subtitle: 'آسانسور، روشنایی، تهویه',
     icon: Wrench,
-    keywords: 'خرابی آسانسور پله برقی لامپ روشنایی تهویه',
   },
   {
     id: 'support',
     title: 'پشتیبانی و قوانین',
     subtitle: 'مقررات و تماس',
     icon: LifeBuoy,
-    keywords: 'قوانین مقررات پشتیبانی تماس ساعت کاری',
   },
 ];
+
+/** Home groups: unrelated services live in separate sections. */
+export const HOME_GROUPS: Array<{ title: string; modules: ModuleId[] }> = [
+  { title: 'درخواست‌ها و خدمات', modules: ['services', 'maintenance'] },
+  { title: 'تردد و خودرو', modules: ['logistics', 'parking'] },
+  { title: 'امنیت', modules: ['security'] },
+  { title: 'فروش و تبلیغات', modules: ['booth', 'advertising'] },
+  { title: 'راهنما', modules: ['support'] },
+];
+
+export const tileOf = (id: ModuleId) => SERVICE_TILES.find((t) => t.id === id)!;
 
 export const MODULE_TITLES: Record<ModuleId, string> = Object.fromEntries(
   SERVICE_TILES.map((t) => [t.id, t.title]),
@@ -213,7 +230,11 @@ export const MALL_RULES = [
   },
   {
     title: 'بارگیری و تخلیه',
-    body: 'بارگیری فقط با نوبت ثبت‌شده و از درب‌های تعیین‌شده انجام می‌شود. ساعت ۱۲ تا ۱۴ و ۱۸ تا ۲۱ بارگیری از درب اسدنژاد ممنوع است. دو بار رد شدن درخواست تمدید، دسترسی بارگیری غرفه را تا فعال‌سازی مدیریت قفل می‌کند.',
+    body: 'بارگیری فقط با نوبت ثبت‌شده و از درب‌های تعیین‌شده انجام می‌شود. ساعت ۱۲ تا ۱۴ و ۱۸ تا ۲۱ بارگیری از درب اسدنژاد ممنوع است.',
+  },
+  {
+    title: 'پارکینگ',
+    body: 'هر غرفه با اشتراک فعال می‌تواند خودروهای ثبت‌شده را در طبقه تعیین‌شده پارک کند. تمدید اشتراک در دفتر پارکینگ انجام می‌شود.',
   },
   {
     title: 'تبلیغات و تابلو',

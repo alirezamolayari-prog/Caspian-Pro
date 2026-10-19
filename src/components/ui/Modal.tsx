@@ -1,11 +1,10 @@
 import { X } from 'lucide-react';
 import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { cx } from './cx';
 
 /**
- * Bottom sheet dialog: focus moves in on open and back to the trigger on close,
- * Escape and the scrim close it, Tab stays inside.
+ * Bottom sheet: focus moves in on open and back on close, Escape and the
+ * scrim close it, Tab stays inside.
  */
 export function Modal({
   open,
@@ -13,7 +12,6 @@ export function Modal({
   title,
   children,
   footer,
-  tone = 'default',
   dismissible = true,
 }: {
   open: boolean;
@@ -21,7 +19,6 @@ export function Modal({
   title: string;
   children: ReactNode;
   footer?: ReactNode;
-  tone?: 'default' | 'danger';
   dismissible?: boolean;
 }) {
   const titleId = useId();
@@ -69,9 +66,9 @@ export function Modal({
 
   if (!open) return null;
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center">
+    <div className="fixed inset-0 z-[100] flex items-end justify-center">
       <div
-        className="animate-fade absolute inset-0 bg-scrim backdrop-blur-[2px]"
+        className="animate-fade absolute inset-0 bg-scrim"
         onClick={dismissible ? onClose : undefined}
         aria-hidden
       />
@@ -81,14 +78,11 @@ export function Modal({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className={cx(
-          'animate-sheet safe-bottom relative flex max-h-[90dvh] w-full max-w-md flex-col rounded-t-3xl border border-line bg-surface text-ink shadow-2xl sm:rounded-3xl',
-          tone === 'danger' && 'border-danger/40',
-        )}
+        className="animate-sheet safe-bottom relative flex max-h-[90dvh] w-full max-w-md flex-col rounded-t-[28px] bg-card text-ink"
       >
-        <div className="mx-auto mt-2 h-1.5 w-10 rounded-full bg-line sm:hidden" aria-hidden />
-        <div className="flex items-center justify-between gap-2 px-5 pb-2 pt-3">
-          <h2 id={titleId} className="text-lg font-extrabold">
+        <div className="mx-auto mt-3 h-1 w-8 rounded-full bg-outline/60" aria-hidden />
+        <div className="flex items-center justify-between gap-2 px-6 pb-2 pt-3">
+          <h2 id={titleId} className="text-xl font-bold">
             {title}
           </h2>
           {dismissible && (
@@ -96,14 +90,14 @@ export function Modal({
               type="button"
               onClick={onClose}
               aria-label="بستن"
-              className="inline-flex size-11 items-center justify-center rounded-2xl bg-surface-2 text-ink active:scale-95 cursor-pointer"
+              className="-me-2 inline-flex size-12 items-center justify-center rounded-full text-ink-2 hover:bg-field cursor-pointer"
             >
               <X className="size-5" aria-hidden />
             </button>
           )}
         </div>
-        <div className="overflow-y-auto px-5 pb-4">{children}</div>
-        {footer && <div className="border-t border-line px-5 py-4">{footer}</div>}
+        <div className="overflow-y-auto px-6 pb-4">{children}</div>
+        {footer && <div className="px-6 pb-5 pt-2">{footer}</div>}
       </div>
     </div>,
     document.body,

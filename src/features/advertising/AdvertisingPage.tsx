@@ -3,7 +3,7 @@ import { useRef, useState } from 'react';
 import { PageHeader } from '../../components/layout/Header';
 import { SuccessPanel } from '../../components/layout/Success';
 import { Button } from '../../components/ui/Button';
-import { SectionTitle } from '../../components/ui/Card';
+import { IconTile, SectionTitle } from '../../components/ui/Card';
 import { Segmented } from '../../components/ui/Choice';
 import { Field, TextArea, TextInput } from '../../components/ui/Field';
 import { cx } from '../../components/ui/cx';
@@ -65,8 +65,8 @@ export function AdvertisingPage() {
 
   return (
     <>
-      <PageHeader back title="درخواست تبلیغات" subtitle="کمپین دیجیتال و تبلیغات محیطی کاسپین" />
-      <div className="animate-view flex flex-col gap-4 px-4 pt-4">
+      <PageHeader back title="درخواست تبلیغات" subtitle="تبلیغات دیجیتال و محیطی کاسپین" />
+      <div className="animate-view flex flex-col gap-4 px-4 pt-2">
         {ticket ? (
           <SuccessPanel
             ticket={ticket}
@@ -76,12 +76,9 @@ export function AdvertisingPage() {
         ) : (
           <form ref={formRef} onSubmit={onSubmit} noValidate className="flex flex-col gap-5">
             <section aria-labelledby="channels-title">
-              <SectionTitle>
-                <span id="channels-title">کانال‌های تبلیغاتی</span>
-              </SectionTitle>
+              <SectionTitle id="channels-title">کانال تبلیغ</SectionTitle>
               <div className="grid grid-cols-2 gap-3">
                 {AD_CHANNELS.map((c) => {
-                  const Icon = c.icon;
                   const on = channels.includes(c.id);
                   return (
                     <button
@@ -93,39 +90,18 @@ export function AdvertisingPage() {
                         touch('channels');
                       }}
                       className={cx(
-                        'theme-fade relative flex min-h-36 flex-col gap-2 overflow-hidden rounded-2xl border p-4 text-start shadow-card transition-transform duration-150 active:scale-95 cursor-pointer',
-                        on
-                          ? 'border-gold bg-header-2 text-on-header'
-                          : 'border-line bg-surface text-ink',
+                        'theme-fade relative flex min-h-36 flex-col gap-2 rounded-[20px] border bg-card p-4 text-start transition-colors cursor-pointer',
+                        on ? 'border-primary ring-1 ring-primary' : 'border-line hover:bg-row',
                       )}
                     >
-                      <span
-                        aria-hidden
-                        className={cx(
-                          'pointer-events-none absolute -end-6 -top-6 size-20 rounded-full blur-xl',
-                          on ? 'bg-gold/30' : 'bg-gold/10',
-                        )}
-                      />
-                      <span
-                        className={cx(
-                          'relative inline-flex size-11 items-center justify-center rounded-xl',
-                          on ? 'bg-gold text-on-gold' : 'bg-gold-soft text-gold-ink',
-                        )}
-                      >
-                        <Icon className="size-5" aria-hidden />
+                      <IconTile icon={c.icon} />
+                      <span className="text-[15px] font-semibold leading-6 text-ink">
+                        {c.title}
                       </span>
-                      <span className="relative text-sm font-extrabold leading-6">{c.title}</span>
-                      <span
-                        className={cx(
-                          'relative text-xs leading-5',
-                          on ? 'text-on-header-2' : 'text-ink-2',
-                        )}
-                      >
-                        {c.description}
-                      </span>
+                      <span className="text-[13px] leading-5 text-ink-2">{c.description}</span>
                       {on && (
-                        <span className="absolute end-3 top-3 inline-flex size-6 items-center justify-center rounded-full bg-gold text-on-gold">
-                          <Check className="size-4" aria-hidden />
+                        <span className="absolute end-3 top-3 inline-flex size-6 items-center justify-center rounded-full bg-primary text-on-primary">
+                          <Check className="size-4" strokeWidth={2.5} aria-hidden />
                         </span>
                       )}
                     </button>
@@ -133,7 +109,7 @@ export function AdvertisingPage() {
                 })}
               </div>
               {err('channels') && (
-                <p role="alert" className="mt-2 px-1 text-xs font-bold text-danger">
+                <p role="alert" className="mt-2 px-2 text-[13px] font-semibold text-danger">
                   {err('channels')}
                 </p>
               )}
@@ -150,17 +126,18 @@ export function AdvertisingPage() {
                   maxLength={80}
                   onChange={(e) => setTitle(e.target.value)}
                   onBlur={() => touch('title')}
-                  placeholder="مثلاً جشنواره پاییزه مبلمان رویال"
+                  placeholder="مثلاً جشنواره پاییزه"
                 />
               )}
             </Field>
 
             <div className="flex flex-col gap-2">
-              <p className="px-1 text-sm font-bold text-ink">مدت نمایش</p>
+              <p className="px-2 text-[15px] font-semibold text-ink">مدت نمایش</p>
               <Segmented<Duration>
                 label="مدت نمایش"
                 value={duration}
                 onChange={setDuration}
+                columns={2}
                 options={AD_DURATIONS.map((d) => ({ value: d, label: d }))}
               />
             </div>
@@ -169,7 +146,7 @@ export function AdvertisingPage() {
               label="توضیحات"
               required
               error={err('description')}
-              helper="پیام اصلی، تخفیف‌ها و مخاطب هدف"
+              helper="پیام اصلی، تخفیف‌ها و مخاطب"
             >
               {({ id, describedBy, invalid }) => (
                 <TextArea
@@ -186,7 +163,7 @@ export function AdvertisingPage() {
             </Field>
 
             <Field
-              label="لینک مقصد (وب‌سایت یا اینستاگرام)"
+              label="لینک (سایت یا اینستاگرام)"
               required={needsLink}
               error={err('link')}
               helper="مثل royalfurniture.ir یا ‎@royal.furniture"
@@ -205,12 +182,11 @@ export function AdvertisingPage() {
                   maxLength={200}
                   onChange={(e) => setLink(e.target.value)}
                   onBlur={() => touch('link')}
-                  placeholder="https://"
                 />
               )}
             </Field>
 
-            <Button type="submit" size="lg" block icon={Megaphone} loading={submitting}>
+            <Button type="submit" block icon={Megaphone} loading={submitting}>
               ثبت درخواست تبلیغات
             </Button>
           </form>

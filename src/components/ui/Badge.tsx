@@ -1,18 +1,17 @@
 import type { LucideIcon } from 'lucide-react';
 import { cx } from './cx';
 
-export type Tone = 'gold' | 'success' | 'danger' | 'warning' | 'info' | 'neutral';
+export type Tone = 'success' | 'danger' | 'warning' | 'info' | 'neutral';
 
 const TONES: Record<Tone, string> = {
-  gold: 'bg-gold-soft text-gold-ink',
   success: 'bg-success-soft text-success',
   danger: 'bg-danger-soft text-danger',
   warning: 'bg-warning-soft text-warning',
   info: 'bg-info-soft text-info',
-  neutral: 'bg-surface-2 text-ink-2',
+  neutral: 'bg-primary-soft text-on-primary-soft',
 };
 
-/** Status is always shown as text (never colour alone). */
+/** Status chip. Status is always written out, never colour alone. */
 export function Badge({
   tone = 'neutral',
   icon: Icon,
@@ -27,12 +26,12 @@ export function Badge({
   return (
     <span
       className={cx(
-        'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold whitespace-nowrap',
+        'inline-flex items-center gap-1.5 rounded-[10px] px-2.5 py-1 text-[13px] font-semibold whitespace-nowrap',
         TONES[tone],
         className,
       )}
     >
-      {Icon && <Icon className="size-3.5" aria-hidden />}
+      {Icon && <Icon className="size-4" aria-hidden />}
       {children}
     </span>
   );

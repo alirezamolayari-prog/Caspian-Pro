@@ -2,15 +2,14 @@ import { Loader2, type LucideIcon } from 'lucide-react';
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { cx } from './cx';
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'navy';
+type Variant = 'filled' | 'tonal' | 'outlined' | 'text' | 'danger';
 
 const VARIANTS: Record<Variant, string> = {
-  primary:
-    'bg-gold text-on-gold shadow-[0_6px_18px_-6px_rgba(212,175,55,0.65)] hover:brightness-105',
-  navy: 'bg-header text-on-header dark:bg-surface-2 hover:brightness-110',
-  secondary: 'bg-surface text-ink border border-line hover:bg-surface-2',
-  ghost: 'bg-transparent text-ink hover:bg-surface-2',
-  danger: 'bg-danger text-white dark:text-[#1a0505] hover:brightness-110',
+  filled: 'bg-primary text-on-primary hover:opacity-90',
+  tonal: 'bg-primary-soft text-on-primary-soft hover:opacity-90',
+  outlined: 'border border-outline bg-transparent text-ink hover:bg-row',
+  text: 'bg-transparent text-ink hover:bg-row',
+  danger: 'bg-sos text-on-sos hover:opacity-90',
 };
 
 interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -18,16 +17,15 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   icon?: LucideIcon;
   loading?: boolean;
   block?: boolean;
-  size?: 'md' | 'lg';
   children: ReactNode;
 }
 
+/** Stadium button, 48px tall (Owner style). */
 export function Button({
-  variant = 'primary',
+  variant = 'filled',
   icon: Icon,
   loading,
   block,
-  size = 'md',
   className,
   disabled,
   children,
@@ -40,9 +38,8 @@ export function Button({
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       className={cx(
-        'inline-flex items-center justify-center gap-2 rounded-2xl font-bold transition-[transform,filter,background-color] duration-150 active:scale-95 cursor-pointer select-none',
-        'disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100',
-        size === 'lg' ? 'min-h-14 px-6 text-base' : 'min-h-12 px-4 text-sm',
+        'inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-6 text-[15px] font-semibold transition-[opacity,background-color,transform] duration-150 active:scale-[0.98] cursor-pointer select-none',
+        'disabled:cursor-not-allowed disabled:opacity-50',
         block && 'w-full',
         VARIANTS[variant],
         className,
@@ -62,33 +59,22 @@ export function Button({
 interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   icon: LucideIcon;
   label: string;
-  tone?: 'header' | 'surface';
 }
 
-/** Icon-only control with a 48px hit area and an accessible name. */
-export function IconButton({
-  icon: Icon,
-  label,
-  tone = 'surface',
-  className,
-  children,
-  ...rest
-}: IconButtonProps) {
+/** Icon-only control: 48px hit area and an accessible name. */
+export function IconButton({ icon: Icon, label, className, children, ...rest }: IconButtonProps) {
   return (
     <button
       type="button"
       aria-label={label}
       title={label}
       className={cx(
-        'relative inline-flex size-12 shrink-0 items-center justify-center rounded-2xl transition-[transform,background-color] duration-150 active:scale-95 cursor-pointer',
-        tone === 'header'
-          ? 'bg-white/10 text-on-header hover:bg-white/15 ring-1 ring-white/10'
-          : 'bg-surface-2 text-ink hover:brightness-95',
+        'relative inline-flex size-12 shrink-0 items-center justify-center rounded-full text-ink transition-colors duration-150 hover:bg-field cursor-pointer',
         className,
       )}
       {...rest}
     >
-      <Icon className="size-5" aria-hidden />
+      <Icon className="size-6" strokeWidth={1.75} aria-hidden />
       {children}
     </button>
   );

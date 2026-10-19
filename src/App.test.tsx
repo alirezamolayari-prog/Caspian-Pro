@@ -1,9 +1,11 @@
 import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { LATENCY } from './api/mock';
+import { PARKING_LATENCY, mockParkingSource, setParkingSource } from './api/parking';
 import App from './App';
-import { useLoading } from './store/loading';
+import { PROMPT_KEY } from './features/onboarding/notifications';
+import { clearParkingCache } from './hooks/useParking';
 import { seedNotices, useNotifications } from './store/notifications';
 import { useSecurity } from './store/security';
 import { seedTickets, useTickets } from './store/tickets';
@@ -11,30 +13,20 @@ import { useUi } from './store/ui';
 
 beforeAll(() => {
   LATENCY.submit = 5;
-  LATENCY.extension = 5;
   LATENCY.dispatch = 5;
+  PARKING_LATENCY.ms = 5;
 });
 
 beforeEach(() => {
   useTickets.setState({ items: seedTickets() });
   useNotifications.setState({ items: seedNotices() });
   useSecurity.setState({ passes: [] });
-  useUi.setState({ toasts: [], permissionsOpen: false });
+  useUi.setState({ toasts: [], notifyPromptOpen: false });
   useUi.getState().setThemePref('light');
-  const now = Date.now();
-  useLoading.setState({
-    session: {
-      gate: 'safarkhani',
-      driverMobile: '09121234567',
-      startedAt: now - 60_000,
-      endsAt: now + 20 * 60_000,
-      warned: false,
-    },
-    pendingExtension: false,
-    approvedExtensions: 0,
-    rejections: 0,
-    locked: false,
-  });
+  // The first-open notification sheet is tested on its own below.
+  localStorage.setItem(PROMPT_KEY, 'browser,standalone');
+  setParkingSource(mockParkingSource);
+  clearParkingCache();
 });
 
 async function goTo(hash: string) {
@@ -44,79 +36,141 @@ async function goTo(hash: string) {
   });
 }
 
-describe('shell', () => {
-  it('renders the home dashboard in RTL with all 7 services', () => {
+describe('home hub', () => {
+  it('shows the store and all 8 sections in separate groups, with no timer or search', async () => {
     render(<App />);
-    expect(screen.getByRole('heading', { name: /مبلمان رویال – پلاک ۲۴/ })).toBeInTheDocument();
-    const grid = screen.getByRole('region', { name: 'دسترسی سریع' }) ?? document.body;
-    expect(within(grid).getAllByRole('link')).toHaveLength(7);
-    expect(screen.getByRole('timer')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'مبلمان رویال' })).toBeInTheDocument();
+    const groups: Record<string, string[]> = {
+      'درخواست‌ها و خدمات': ['خدمات کاسپین', 'گزارش خرابی مشاعات'],
+      'تردد و خودرو': ['بارگیری و تخلیه', 'پارکینگ'],
+      امنیت: ['حراست و انتظامات'],
+      'فروش و تبلیغات': ['رزرو فضای فروش', 'درخواست تبلیغات'],
+      راهنما: ['پشتیبانی و قوانین'],
+    };
+    for (const [group, titles] of Object.entries(groups)) {
+      const region = screen.getByRole('region', { name: group });
+      const links = within(region).getAllByRole('link');
+      expect(links).toHaveLength(titles.length);
+      titles.forEach((t, i) => expect(links[i]).toHaveTextContent(t));
+    }
+    expect(screen.queryByRole('timer')).not.toBeInTheDocument();
+    expect(screen.queryByRole('searchbox')).not.toBeInTheDocument();
     expect(screen.queryByText(/فاکتور/)).not.toBeInTheDocument();
-  });
-
-  it('toggles and persists the theme', async () => {
-    const user = userEvent.setup();
-    render(<App />);
-    expect(document.documentElement.dataset.theme).toBe('light');
-    await user.click(screen.getByRole('button', { name: 'حالت تیره' }));
-    expect(document.documentElement.dataset.theme).toBe('dark');
-    expect(localStorage.getItem('caspian-theme')).toBe('dark');
-    await user.click(screen.getByRole('button', { name: 'حالت روشن' }));
-    expect(document.documentElement.dataset.theme).toBe('light');
-  });
-
-  it('filters services from the search bar', async () => {
-    const user = userEvent.setup();
-    render(<App />);
-    await user.type(screen.getByRole('searchbox'), 'آسانسور');
-    const results = screen.getByRole('region', { name: 'نتایج جستجو' });
-    const titles = within(results)
-      .getAllByRole('link')
-      .map((a) => a.textContent);
-    expect(titles.some((t) => t?.includes('گزارش خرابی مشاعات'))).toBe(true);
-    await user.clear(screen.getByRole('searchbox'));
-    await user.type(screen.getByRole('searchbox'), 'zzzz');
-    expect(screen.getByText('خدمتی پیدا نشد')).toBeInTheDocument();
+    expect(await screen.findByText('۱۲ روز مانده')).toBeInTheDocument();
   });
 
   it('opens notifications from the bell and marks all read', async () => {
     const user = userEvent.setup();
     render(<App />);
     await user.click(screen.getByRole('button', { name: /اعلان‌ها، ۲ خوانده‌نشده/ }));
-    expect(await screen.findByRole('heading', { name: 'مرکز اعلان‌ها' })).toBeInTheDocument();
-    expect(screen.getByText('مجوز خروج کالا تایید شد')).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: /علامت‌گذاری همه/ }));
-    expect(screen.getByRole('button', { name: 'اعلان‌ها' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'اعلان‌ها' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'خواندن همه' }));
+    expect(screen.getByText('همه اعلان‌ها خوانده شده')).toBeInTheDocument();
+  });
+
+  it('switches theme from the profile and remembers it', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await goTo('#/profile');
+    await user.click(screen.getByRole('radio', { name: 'تیره' }));
+    expect(document.documentElement.dataset.theme).toBe('dark');
+    expect(localStorage.getItem('caspian-theme')).toBe('dark');
+    await user.click(screen.getByRole('radio', { name: 'روشن' }));
+    expect(document.documentElement.dataset.theme).toBe('light');
   });
 });
 
-describe('loading timer', () => {
-  it('approves the first extension, rejects the next ones and locks after two', async () => {
+describe('notification permission sheet', () => {
+  it('appears once on first open; «بعداً» hides it for good', async () => {
+    localStorage.removeItem(PROMPT_KEY);
+    vi.stubGlobal('Notification', { permission: 'default', requestPermission: vi.fn() });
     const user = userEvent.setup();
+    const { unmount } = render(<App />);
+    const sheet = await screen.findByRole(
+      'dialog',
+      { name: 'اجازه ارسال اعلان' },
+      { timeout: 2000 },
+    );
+    await user.click(within(sheet).getByRole('button', { name: 'بعداً' }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    unmount();
     render(<App />);
-    const extend = () => screen.getByRole('button', { name: /درخواست تمدید/ });
-    await user.click(extend());
-    await waitFor(() => expect(useLoading.getState().approvedExtensions).toBe(1));
-    await user.click(extend());
-    await waitFor(() => expect(useLoading.getState().rejections).toBe(1));
-    expect((await screen.findAllByText(/اخطار ۱ از ۲/)).length).toBeGreaterThan(0);
-    await user.click(extend());
-    await waitFor(() => expect(useLoading.getState().locked).toBe(true));
-    expect(extend()).toBeDisabled();
+    await new Promise((r) => setTimeout(r, 1000));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    vi.unstubAllGlobals();
   });
 
-  it('checks out after confirmation', async () => {
+  it('«اجازه می‌دهم» asks the browser for permission', async () => {
+    localStorage.removeItem(PROMPT_KEY);
+    const requestPermission = vi.fn().mockResolvedValue('granted');
+    vi.stubGlobal('Notification', { permission: 'default', requestPermission });
     const user = userEvent.setup();
     render(<App />);
-    await user.click(screen.getByRole('button', { name: 'تسویه و خروج' }));
-    const dialog = screen.getByRole('dialog', { name: 'تسویه و خروج از بارانداز' });
-    await user.click(within(dialog).getByRole('button', { name: 'تایید خروج' }));
-    expect(useLoading.getState().session).toBeNull();
-    expect(screen.getByText('نوبت بارگیری فعالی ندارید')).toBeInTheDocument();
+    const sheet = await screen.findByRole(
+      'dialog',
+      { name: 'اجازه ارسال اعلان' },
+      { timeout: 2000 },
+    );
+    await user.click(within(sheet).getByRole('button', { name: 'اجازه می‌دهم' }));
+    expect(requestPermission).toHaveBeenCalled();
+    expect(await screen.findByText('اعلان‌ها فعال شد')).toBeInTheDocument();
+    vi.unstubAllGlobals();
   });
 });
 
-describe('modules', () => {
+describe('parking', () => {
+  it('shows the subscription read-only, with no payment', async () => {
+    render(<App />);
+    await goTo('#/m/parking');
+    expect(await screen.findByText('۱۲ روز')).toBeInTheDocument();
+    expect(screen.getByText('اشتراک ماهانه غرفه‌دار')).toBeInTheDocument();
+    expect(screen.getByText('فعال')).toBeInTheDocument();
+    expect(screen.getByRole('progressbar', { name: /روزهای استفاده‌شده/ })).toHaveAttribute(
+      'aria-valuenow',
+      '60',
+    );
+    expect(
+      within(screen.getByRole('list', { name: 'پلاک‌های ثبت‌شده' })).getAllByRole('listitem'),
+    ).toHaveLength(2);
+    expect(screen.getAllByLabelText('پلاک 12 ب 345 ایران 67').length).toBeGreaterThan(0);
+    expect(screen.getByText('هنوز در پارکینگ')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /پرداخت|خرید|تمدید/ })).not.toBeInTheDocument();
+  });
+
+  it('warns when the subscription is ending and offers retry on error', async () => {
+    const now = Date.now();
+    setParkingSource({
+      getSubscription: async () => ({
+        ...(await mockParkingSource.getSubscription()),
+        startsAt: now - 27 * 86_400_000,
+        endsAt: now + 3 * 86_400_000,
+      }),
+    });
+    const { unmount } = render(<App />);
+    await goTo('#/m/parking');
+    expect(await screen.findByText('رو به اتمام')).toBeInTheDocument();
+    expect(screen.getByText(/به دفتر پارکینگ کاسپین مراجعه کنید/)).toBeInTheDocument();
+    unmount();
+
+    clearParkingCache();
+    let fail = true;
+    setParkingSource({
+      getSubscription: async () => {
+        if (fail) throw new Error('offline');
+        return mockParkingSource.getSubscription();
+      },
+    });
+    const user = userEvent.setup();
+    render(<App />);
+    await goTo('#/m/parking');
+    await user.click(await screen.findByRole('button', { name: 'تلاش دوباره' }));
+    fail = false;
+    await user.click(await screen.findByRole('button', { name: 'تلاش دوباره' }));
+    expect(await screen.findByText('۱۲ روز')).toBeInTheDocument();
+  });
+});
+
+describe('forms', () => {
   it('general services: requires a chip, then submits with a tracking id', async () => {
     const user = userEvent.setup();
     render(<App />);
@@ -135,34 +189,27 @@ describe('modules', () => {
     });
   });
 
-  it('logistics: validates the driver mobile, shows capacity, and starts a timer', async () => {
-    useLoading.setState({ session: null });
+  it('logistics: simple booking with gate, duration and driver mobile', async () => {
     const user = userEvent.setup();
     render(<App />);
     await goTo('#/m/logistics');
     expect(screen.getByRole('radio', { name: /درب اسدنژاد/ })).toBeDisabled();
-    await user.click(screen.getByRole('button', { name: /ثبت نوبت/ }));
+    await user.click(screen.getByRole('button', { name: 'ثبت نوبت' }));
     expect(screen.getByText('یک درب بارگیری انتخاب کنید.')).toBeInTheDocument();
     await user.click(screen.getByRole('radio', { name: /پارکینگ اختصاصی/ }));
+    await user.click(screen.getByRole('radio', { name: 'فردا' }));
     await user.click(screen.getByRole('radio', { name: '۴۵ دقیقه' }));
     await user.type(screen.getByLabelText(/شماره موبایل راننده/), '0912');
-    await user.click(screen.getByRole('button', { name: /ثبت نوبت/ }));
+    await user.click(screen.getByRole('button', { name: 'ثبت نوبت' }));
     expect(screen.getByText(/به شکل ۰۹۱۲۳۴۵۶۷۸۹/)).toBeInTheDocument();
     await user.type(screen.getByLabelText(/شماره موبایل راننده/), '1234567');
-    await user.click(screen.getByRole('button', { name: /ثبت نوبت/ }));
-    await waitFor(() => expect(useLoading.getState().session?.gate).toBe('parking'));
-    const s = useLoading.getState().session!;
-    expect(s.endsAt - s.startedAt).toBe(45 * 60_000);
-  });
-
-  it('logistics: demo switch previews the locked state', async () => {
-    const user = userEvent.setup();
-    render(<App />);
-    await goTo('#/m/logistics');
-    await user.click(screen.getByRole('switch', { name: /پیش‌نمایش حالت قفل/ }));
-    expect(screen.getByRole('heading', { name: 'دسترسی بارگیری قفل شد' })).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: /فعال‌سازی مجدد/ }));
-    expect(useLoading.getState().locked).toBe(false);
+    await user.click(screen.getByRole('button', { name: 'ثبت نوبت' }));
+    expect(await screen.findByText('درخواست شما ثبت شد')).toBeInTheDocument();
+    expect(useTickets.getState().items[0]).toMatchObject({
+      module: 'logistics',
+      title: 'نوبت بارگیری – پارکینگ اختصاصی',
+      details: ['فردا', '۴۵ دقیقه', 'راننده ۰۹۱۲۱۲۳۴۵۶۷'],
+    });
   });
 
   it('booth booking: needs zone, date and details', async () => {
@@ -172,7 +219,7 @@ describe('modules', () => {
     await user.click(screen.getByRole('button', { name: 'ثبت درخواست رزرو' }));
     expect(screen.getByText('یک فضا انتخاب کنید.')).toBeInTheDocument();
     await user.click(screen.getByRole('radio', { name: /آتریوم مرکزی/ }));
-    const dates = within(screen.getByRole('radiogroup', { name: /تاریخ شروع/ })).getAllByRole(
+    const dates = within(screen.getByRole('radiogroup', { name: 'تاریخ شروع' })).getAllByRole(
       'radio',
     );
     expect(dates).toHaveLength(14);
@@ -193,10 +240,7 @@ describe('modules', () => {
     await user.type(screen.getByLabelText(/^توضیحات/), 'تخفیف ویژه سرویس‌های خواب');
     await user.click(screen.getByRole('button', { name: 'ثبت درخواست تبلیغات' }));
     expect(screen.getByText(/لینک سایت یا اینستاگرام لازم است/)).toBeInTheDocument();
-    await user.type(screen.getByLabelText(/لینک مقصد/), 'not a link');
-    expect(screen.getByText(/آیدی اینستاگرام/)).toBeInTheDocument();
-    await user.clear(screen.getByLabelText(/لینک مقصد/));
-    await user.type(screen.getByLabelText(/لینک مقصد/), '@royal.furniture');
+    await user.type(screen.getByLabelText(/^لینک/), '@royal.furniture');
     await user.click(screen.getByRole('button', { name: 'ثبت درخواست تبلیغات' }));
     expect(await screen.findByText('درخواست شما ثبت شد')).toBeInTheDocument();
   });
@@ -206,13 +250,15 @@ describe('modules', () => {
     render(<App />);
     await goTo('#/m/security');
     await user.type(screen.getByLabelText(/نام و نام خانوادگی/), 'علی محمدی');
+    await user.clear(screen.getByLabelText(/ساعت ورود/));
+    await user.type(screen.getByLabelText(/ساعت ورود/), '10:00');
     await user.clear(screen.getByLabelText(/ساعت خروج/));
     await user.type(screen.getByLabelText(/ساعت خروج/), '08:00');
-    await user.click(screen.getByRole('button', { name: 'صدور کارت QR' }));
+    await user.click(screen.getByRole('button', { name: 'صدور کارت' }));
     expect(screen.getByText('ساعت خروج باید بعد از ساعت ورود باشد.')).toBeInTheDocument();
     await user.clear(screen.getByLabelText(/ساعت خروج/));
-    await user.type(screen.getByLabelText(/ساعت خروج/), '23:59');
-    await user.click(screen.getByRole('button', { name: 'صدور کارت QR' }));
+    await user.type(screen.getByLabelText(/ساعت خروج/), '18:00');
+    await user.click(screen.getByRole('button', { name: 'صدور کارت' }));
     expect(await screen.findByRole('article', { name: 'کارت تردد علی محمدی' })).toBeInTheDocument();
     expect(await screen.findByRole('img', { name: /کد QR کارت تردد علی محمدی/ })).toHaveAttribute(
       'src',
@@ -220,11 +266,8 @@ describe('modules', () => {
     );
 
     await user.click(screen.getByRole('button', { name: /فراخوان اضطراری حراست به غرفه/ }));
-    await user.click(
-      within(screen.getByRole('dialog', { name: /مرحله ۱ از ۲/ })).getByRole('radio', {
-        name: 'دود یا آتش',
-      }),
-    );
+    const step1 = screen.getByRole('dialog', { name: /مرحله ۱ از ۲/ });
+    await user.click(within(step1).getByRole('radio', { name: 'دود یا آتش' }));
     await user.click(screen.getByRole('button', { name: 'ادامه' }));
     expect(useTickets.getState().items.some((t) => t.title === 'فراخوان اضطراری حراست')).toBe(
       false,
@@ -254,30 +297,23 @@ describe('modules', () => {
     expect(useTickets.getState().items[0]!.details).toContain('۱ عکس پیوست');
   });
 
-  it('support: rules accordion and contact links', async () => {
+  it('support: rules accordion and phone numbers', async () => {
     const user = userEvent.setup();
     render(<App />);
     await goTo('#/m/support');
-    const rule = screen.getByRole('button', { name: 'بارگیری و تخلیه' });
+    const rule = screen.getByRole('button', { name: 'پارکینگ' });
     expect(rule).toHaveAttribute('aria-expanded', 'false');
     await user.click(rule);
     expect(rule).toHaveAttribute('aria-expanded', 'true');
-    expect(
-      screen.getAllByRole('link').some((a) => a.getAttribute('href')?.startsWith('tel:')),
-    ).toBe(true);
+    expect(screen.getByText(/تمدید اشتراک در دفتر پارکینگ/)).toBeInTheDocument();
   });
 
-  it('permissions helper opens from the profile with iOS two-step guidance', async () => {
+  it('requests tab lists tickets and expands details', async () => {
     const user = userEvent.setup();
     render(<App />);
-    await goTo('#/profile');
-    await user.click(screen.getByRole('button', { name: /بازیابی دسترسی مکان و اعلان/ }));
-    const dialog = screen.getByRole('dialog', { name: 'فعال‌سازی دسترسی‌ها' });
-    await user.click(within(dialog).getByRole('radio', { name: /آیفون/ }));
-    expect(within(dialog).getByText(/دسترسی «همیشه» دو مرحله دارد/)).toBeInTheDocument();
-    await user.click(within(dialog).getByRole('button', { name: 'رفتن به تنظیمات گوشی' }));
-    expect(within(dialog).getByRole('button', { name: 'بررسی مجدد دسترسی' })).toBeInTheDocument();
-    await user.keyboard('{Escape}');
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    await goTo('#/requests');
+    await user.click(screen.getByRole('button', { name: /خروج کالا/ }));
+    expect(screen.getByText('CSP-۴۸۲۹۱۳')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getAllByRole('listitem').length).toBeGreaterThan(1));
   });
 });

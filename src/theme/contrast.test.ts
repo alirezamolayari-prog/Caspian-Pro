@@ -47,31 +47,29 @@ describe.each([
 ])('%s theme contrast', (_, t) => {
   const pairs: Array<[string, string]> = [
     ['text', 'bg'],
-    ['text', 'surface'],
-    ['text-2', 'surface'],
+    ['text', 'card'],
+    ['text', 'row'],
+    ['text', 'field'],
     ['text-2', 'bg'],
-    ['text-2', 'surface-2'],
-    ['accent-ink', 'surface'],
-    ['accent-ink', 'bg'],
-    ['on-accent', 'accent'],
-    ['on-header', 'header'],
-    ['on-header-2', 'header'],
-    ['on-header-2', 'header-2'],
-    ['danger', 'surface'],
-    ['success', 'surface'],
-    ['warning', 'surface'],
-    ['info', 'surface'],
+    ['text-2', 'card'],
+    ['text-2', 'row'],
+    ['text-2', 'field'],
+    ['on-primary', 'primary'],
+    ['on-primary-soft', 'primary-soft'],
+    ['primary', 'card'],
+    ['danger', 'card'],
+    ['on-sos', 'sos'],
   ];
+
   it.each(pairs)('%s on %s is at least 4.5:1', (fg, bg) => {
     expect(ratio(t[fg]!, t[bg]!)).toBeGreaterThanOrEqual(4.5);
   });
-  // Badges: tone text on its translucent tint, laid over the card surface.
-  it.each(['success', 'danger', 'warning', 'info'])('%s badge text on its tint', (tone) => {
-    expect(ratio(t[tone]!, over(t[`${tone}-soft`]!, t.surface!))).toBeGreaterThanOrEqual(4.5);
+  // Status chips: tone text on its tint.
+  it.each(['success', 'danger', 'warning', 'info'])('%s chip text on its tint', (tone) => {
+    expect(ratio(t[tone]!, over(t[`${tone}-soft`]!, t.card!))).toBeGreaterThanOrEqual(4.5);
   });
-  it('gold badge text on its tint', () => {
-    expect(ratio(t['accent-ink']!, over(t['accent-soft']!, t.surface!))).toBeGreaterThanOrEqual(
-      4.5,
-    );
+  // Control outlines (chips, radio dots) need 3:1 against the card.
+  it('outline is visible against the card', () => {
+    expect(ratio(t.outline!, t.card!)).toBeGreaterThanOrEqual(3);
   });
 });

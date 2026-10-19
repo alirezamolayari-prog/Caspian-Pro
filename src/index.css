@@ -3,99 +3,90 @@
 
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
-/* Design tokens: every color in the app comes from here. */
+/* Design tokens: every color in the app comes from here.
+   Light = the Caspian Owner slate palette; dark = neutral gray. */
 :root {
-  --bg: #f8fafc;
-  --surface: #ffffff;
-  --surface-2: #f1f5f9;
-  --border: #e2e8f0;
-  --header: #0f172a;
-  --header-2: #1e293b;
+  --bg: #edf1f5;
+  --card: #ffffff;
+  --row: #f2f5f8;
+  --field: #e3e8ee;
+  --border: #d8dfe7;
+  --outline: #8a96a5;
   --text: #0f172a;
   --text-2: #475569;
-  --on-header: #f8fafc;
-  --on-header-2: #cbd5e1;
-  --accent: #d4af37;
-  --accent-soft: rgba(212, 175, 55, 0.14);
-  /* Gold that still reads as text/icon on light surfaces (≥4.5:1 on white). */
-  --accent-ink: #7f620c;
-  --on-accent: #0f172a;
-  --danger: #b91c1c;
-  --danger-soft: rgba(185, 28, 28, 0.1);
-  --success: #166534;
-  --success-soft: rgba(21, 128, 61, 0.1);
-  --warning: #a14b06;
-  --warning-soft: rgba(217, 119, 6, 0.12);
+  --primary: #334155;
+  --on-primary: #ffffff;
+  --primary-soft: #dde3ea;
+  --on-primary-soft: #1e293b;
+  --success: #047857;
+  --success-soft: #d1fae5;
+  --warning: #9a3412;
+  --warning-soft: #ffedd5;
+  --danger: #b3261e;
+  --danger-soft: #fde2e0;
   --info: #1d4ed8;
-  --info-soft: rgba(29, 78, 216, 0.1);
-  --nav: rgba(255, 255, 255, 0.82);
-  --scrim: rgba(15, 23, 42, 0.55);
-  --shadow:
-    0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 12px rgba(15, 23, 42, 0.06),
-    0 12px 32px rgba(15, 23, 42, 0.05);
-  --focus: #b8901c;
+  --info-soft: #dbeafe;
+  --sos: #c62828;
+  --on-sos: #ffffff;
+  --scrim: rgba(15, 23, 42, 0.45);
+  --focus: #334155;
   color-scheme: light;
 }
 
 :root[data-theme='dark'] {
-  --bg: #090d16;
-  --surface: #111827;
-  --surface-2: #1e293b;
-  --border: rgba(212, 175, 55, 0.18);
-  --header: #060911;
-  --header-2: #0f172a;
-  --text: #f8fafc;
-  --text-2: #94a3b8;
-  --on-header: #f8fafc;
-  --on-header-2: #94a3b8;
-  --accent: #d4af37;
-  --accent-soft: rgba(229, 193, 88, 0.14);
-  --accent-ink: #e5c158;
-  --on-accent: #0f172a;
-  --danger: #f87171;
-  --danger-soft: rgba(248, 113, 113, 0.14);
-  --success: #4ade80;
-  --success-soft: rgba(74, 222, 128, 0.12);
-  --warning: #fbbf24;
-  --warning-soft: rgba(251, 191, 36, 0.12);
+  --bg: #161616;
+  --card: #212121;
+  --row: #282828;
+  --field: #2c2c2c;
+  --border: #383838;
+  --outline: #8c8c8c;
+  --text: #f2f2f2;
+  --text-2: #b3b3b3;
+  --primary: #d9d9d9;
+  --on-primary: #1a1a1a;
+  --primary-soft: #333333;
+  --on-primary-soft: #ededed;
+  --success: #6ee7b7;
+  --success-soft: #1d3b30;
+  --warning: #fdba74;
+  --warning-soft: #43301f;
+  --danger: #f2b8b5;
+  --danger-soft: #4a2321;
   --info: #93c5fd;
-  --info-soft: rgba(147, 197, 253, 0.12);
-  --nav: rgba(6, 9, 17, 0.78);
-  --scrim: rgba(0, 0, 0, 0.65);
-  --shadow:
-    0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(212, 175, 55, 0.06);
-  --focus: #e5c158;
+  --info-soft: #1f2d42;
+  --sos: #d32f2f;
+  --on-sos: #ffffff;
+  --scrim: rgba(0, 0, 0, 0.6);
+  --focus: #d9d9d9;
   color-scheme: dark;
 }
 
 @theme inline {
   --font-sans: 'Vazirmatn Variable', Vazirmatn, Tahoma, system-ui, sans-serif;
   --color-bg: var(--bg);
-  --color-surface: var(--surface);
-  --color-surface-2: var(--surface-2);
+  --color-card: var(--card);
+  --color-row: var(--row);
+  --color-field: var(--field);
   --color-line: var(--border);
-  --color-header: var(--header);
-  --color-header-2: var(--header-2);
+  --color-outline: var(--outline);
   --color-ink: var(--text);
   --color-ink-2: var(--text-2);
-  --color-on-header: var(--on-header);
-  --color-on-header-2: var(--on-header-2);
-  --color-gold: var(--accent);
-  --color-gold-soft: var(--accent-soft);
-  --color-gold-ink: var(--accent-ink);
-  --color-on-gold: var(--on-accent);
-  --color-danger: var(--danger);
-  --color-danger-soft: var(--danger-soft);
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-primary-soft: var(--primary-soft);
+  --color-on-primary-soft: var(--on-primary-soft);
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
   --color-warning: var(--warning);
   --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
   --color-info: var(--info);
   --color-info-soft: var(--info-soft);
-  --color-nav: var(--nav);
+  --color-sos: var(--sos);
+  --color-on-sos: var(--on-sos);
   --color-scrim: var(--scrim);
   --color-focus: var(--focus);
-  --shadow-card: var(--shadow);
 }
 
 html {
@@ -108,6 +99,7 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-sans);
+  font-size: 15px;
   line-height: 1.6;
   overflow-x: hidden;
 }
@@ -129,9 +121,8 @@ label {
 }
 
 :focus-visible {
-  outline: 3px solid var(--focus);
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
-  border-radius: 12px;
 }
 
 .tabular {
@@ -146,28 +137,12 @@ label {
   padding-top: env(safe-area-inset-top);
 }
 
-@keyframes gold-pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.7);
-  }
-  70% {
-    box-shadow: 0 0 0 8px rgba(212, 175, 55, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0);
-  }
-}
-
 @keyframes sos-pulse {
   0% {
-    box-shadow:
-      0 0 0 0 rgba(220, 38, 38, 0.55),
-      0 0 0 0 rgba(220, 38, 38, 0.35);
+    box-shadow: 0 0 0 0 rgba(198, 40, 40, 0.35);
   }
   100% {
-    box-shadow:
-      0 0 0 18px rgba(220, 38, 38, 0),
-      0 0 0 36px rgba(220, 38, 38, 0);
+    box-shadow: 0 0 0 14px rgba(198, 40, 40, 0);
   }
 }
 
@@ -202,20 +177,8 @@ label {
   }
 }
 
-@keyframes shimmer {
-  from {
-    background-position: 200% 0;
-  }
-  to {
-    background-position: -200% 0;
-  }
-}
-
-.animate-gold-pulse {
-  animation: gold-pulse 2s infinite;
-}
 .animate-sos {
-  animation: sos-pulse 1.6s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
+  animation: sos-pulse 2s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
 }
 .animate-view {
   animation: view-in 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
@@ -225,23 +188,6 @@ label {
 }
 .animate-fade {
   animation: fade-in 180ms ease-out both;
-}
-.progress-shimmer {
-  position: relative;
-  overflow: hidden;
-}
-.progress-shimmer::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.35) 50%,
-    transparent 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 2.4s linear infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {

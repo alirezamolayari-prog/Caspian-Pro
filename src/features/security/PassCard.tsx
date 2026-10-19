@@ -1,5 +1,6 @@
 import { Download, Trash2 } from 'lucide-react';
-import { Button } from '../../components/ui/Button';
+import { Badge } from '../../components/ui/Badge';
+import { Button, IconButton } from '../../components/ui/Button';
 import { STORE } from '../../data/catalog';
 import { useNow } from '../../hooks/useNow';
 import { displayId } from '../../lib/ids';
@@ -16,13 +17,13 @@ async function downloadPass(p: StaffPass, qrUrl: string) {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
   const grad = ctx.createLinearGradient(0, 0, W, H);
-  grad.addColorStop(0, '#0F172A');
+  grad.addColorStop(0, '#334155');
   grad.addColorStop(1, '#1E293B');
   ctx.fillStyle = grad;
   ctx.beginPath();
   ctx.roundRect(0, 0, W, H, 48);
   ctx.fill();
-  ctx.strokeStyle = '#D4AF37';
+  ctx.strokeStyle = '#CBD5E1';
   ctx.lineWidth = 4;
   ctx.beginPath();
   ctx.roundRect(16, 16, W - 32, H - 32, 40);
@@ -30,7 +31,7 @@ async function downloadPass(p: StaffPass, qrUrl: string) {
   ctx.direction = 'rtl';
   ctx.textAlign = 'center';
   const font = "'Vazirmatn Variable', Vazirmatn, Tahoma, sans-serif";
-  ctx.fillStyle = '#D4AF37';
+  ctx.fillStyle = '#FFFFFF';
   ctx.font = `800 44px ${font}`;
   ctx.fillText('کاسپین پرو', W / 2, 110);
   ctx.fillStyle = '#CBD5E1';
@@ -52,7 +53,7 @@ async function downloadPass(p: StaffPass, qrUrl: string) {
   ctx.fillText(`${p.role} – ${STORE.name} پلاک ${STORE.unit}`, W / 2, 795);
   const [py, pm, pd] = p.date.split('-').map(Number) as [number, number, number];
   ctx.fillText(formatJalali(new Date(py, pm - 1, pd)), W / 2, 860);
-  ctx.fillStyle = '#E5C158';
+  ctx.fillStyle = '#FFFFFF';
   ctx.font = `800 40px ${font}`;
   ctx.fillText(`${toFa(p.from)} تا ${toFa(p.to)}`, W / 2, 920);
   ctx.fillStyle = '#94A3B8';
@@ -72,29 +73,22 @@ export function PassCard({ pass, onRemove }: { pass: StaffPass; onRemove?: () =>
   return (
     <article
       aria-label={`کارت تردد ${pass.name}`}
-      className="animate-view relative overflow-hidden rounded-3xl border border-gold/50 bg-header-2 p-5 text-on-header shadow-card"
+      className="theme-fade animate-view rounded-[20px] border border-line bg-card p-5"
     >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -top-16 -start-16 size-48 rounded-full bg-gold/20 blur-3xl"
-      />
-      <div className="relative flex items-start justify-between gap-2">
+      <div className="flex items-start justify-between gap-2">
         <div>
-          <p className="text-xs font-bold text-gold">کاسپین پرو – کارت تردد موقت</p>
-          <h3 className="mt-1 text-xl font-extrabold">{pass.name}</h3>
-          <p className="text-xs text-on-header-2">
+          <p className="text-[13px] text-ink-2">کارت تردد موقت</p>
+          <h3 className="text-xl font-bold text-ink">{pass.name}</h3>
+          <p className="text-[13px] text-ink-2">
             {pass.role} – {STORE.name} پلاک {STORE.unit}
           </p>
         </div>
-        <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-white px-2.5 py-1 text-xs font-extrabold text-on-gold">
-          <span
-            aria-hidden
-            className={`size-2 rounded-full ${status === 'valid' ? 'bg-[#16A34A]' : status === 'upcoming' ? 'bg-[#D97706]' : 'bg-[#DC2626]'}`}
-          />
+        <Badge tone={status === 'valid' ? 'success' : status === 'upcoming' ? 'warning' : 'danger'}>
           {PASS_STATUS_LABEL[status]}
-        </span>
+        </Badge>
       </div>
-      <div className="relative mx-auto mt-4 w-48 rounded-2xl bg-white p-2 shadow-lg">
+      {/* QR stays dark-on-white in both themes so every scanner can read it. */}
+      <div className="mx-auto mt-4 w-48 rounded-2xl border border-line bg-white p-2">
         {qr ? (
           <img
             src={qr}
@@ -104,38 +98,41 @@ export function PassCard({ pass, onRemove }: { pass: StaffPass; onRemove?: () =>
             height={176}
           />
         ) : (
-          <div className="aspect-square w-full animate-pulse rounded-xl bg-[#E2E8F0]" aria-hidden />
+          <div className="aspect-square w-full animate-pulse rounded-xl bg-field" aria-hidden />
         )}
       </div>
-      <dl className="relative mt-4 grid grid-cols-2 gap-2 text-center text-xs">
-        <div className="rounded-xl bg-white/10 p-2">
-          <dt className="text-on-header-2">تاریخ</dt>
-          <dd className="font-bold">{formatJalali(new Date(y, m - 1, d))}</dd>
+      <dl className="mt-4 grid grid-cols-2 overflow-hidden rounded-2xl border border-line text-center text-[13px]">
+        <div className="p-2">
+          <dt className="text-ink-2">تاریخ</dt>
+          <dd className="font-semibold text-ink">{formatJalali(new Date(y, m - 1, d))}</dd>
         </div>
-        <div className="rounded-xl bg-white/10 p-2">
-          <dt className="text-on-header-2">ساعت اعتبار</dt>
-          <dd className="tabular font-bold">
+        <div className="border-s border-line bg-row p-2">
+          <dt className="text-ink-2">ساعت اعتبار</dt>
+          <dd className="tabular font-semibold text-ink">
             {toFa(pass.from)} تا {toFa(pass.to)}
           </dd>
         </div>
       </dl>
-      <p className="relative mt-3 text-center text-xs text-on-header-2" dir="ltr">
+      <p className="mt-3 text-center text-[13px] text-ink-2" dir="ltr">
         {displayId(pass.id)}
       </p>
-      <div className="relative mt-4 flex gap-2">
-        <Button block icon={Download} disabled={!qr} onClick={() => void downloadPass(pass, qr)}>
-          دانلود کارت
+      <div className="mt-4 flex gap-2">
+        <Button
+          block
+          variant="tonal"
+          icon={Download}
+          disabled={!qr}
+          onClick={() => void downloadPass(pass, qr)}
+        >
+          ذخیره کارت
         </Button>
         {onRemove && (
-          <Button
-            variant="ghost"
+          <IconButton
             icon={Trash2}
-            aria-label={`حذف کارت ${pass.name}`}
-            className="w-12 shrink-0 bg-white/10 px-0 text-on-header"
+            label={`حذف کارت ${pass.name}`}
+            className="bg-field"
             onClick={onRemove}
-          >
-            <span className="sr-only">حذف</span>
-          </Button>
+          />
         )}
       </div>
     </article>

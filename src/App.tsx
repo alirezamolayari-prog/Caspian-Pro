@@ -8,7 +8,8 @@ import { HomePage } from './features/home/HomePage';
 import { LogisticsPage } from './features/logistics/LogisticsPage';
 import { MaintenancePage } from './features/maintenance/MaintenancePage';
 import { NotificationsPage } from './features/notifications/NotificationsPage';
-import { PermissionsModal } from './features/permissions/PermissionsModal';
+import { NotificationPrompt } from './features/onboarding/NotificationPrompt';
+import { ParkingPage } from './features/parking/ParkingPage';
 import { ProfilePage } from './features/profile/ProfilePage';
 import { RequestsPage } from './features/requests/RequestsPage';
 import { SecurityPage } from './features/security/SecurityPage';
@@ -26,6 +27,7 @@ const MODULE_PAGES: Record<ModuleId, () => ReactNode> = {
   advertising: () => <AdvertisingPage />,
   maintenance: () => <MaintenancePage />,
   support: () => <SupportPage />,
+  parking: () => <ParkingPage />,
 };
 
 function renderRoute(route: Route): ReactNode {
@@ -68,10 +70,10 @@ export default function App() {
   }, [key]);
 
   return (
-    <div className="relative mx-auto min-h-dvh max-w-md overflow-x-hidden bg-bg shadow-2xl theme-fade sm:border-x sm:border-line">
+    <div className="relative mx-auto min-h-dvh max-w-md overflow-x-hidden bg-bg theme-fade sm:border-x sm:border-line">
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:start-2 focus:z-[200] focus:rounded-xl focus:bg-gold focus:px-4 focus:py-2 focus:font-bold focus:text-on-gold"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:start-2 focus:z-[200] focus:rounded-xl focus:bg-primary focus:px-4 focus:py-2 focus:font-bold focus:text-on-primary"
       >
         رفتن به محتوای اصلی
       </a>
@@ -80,7 +82,7 @@ export default function App() {
       </main>
       <BottomNav active={route.tab} />
       <Toaster />
-      <PermissionsModal />
+      <NotificationPrompt />
     </div>
   );
 }

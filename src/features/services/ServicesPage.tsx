@@ -7,7 +7,7 @@ import { Card } from '../../components/ui/Card';
 import { Chip, Segmented } from '../../components/ui/Choice';
 import { Field, TextArea } from '../../components/ui/Field';
 import { SERVICE_CATEGORIES } from '../../data/catalog';
-import { focusFirstInvalid, useRequestSubmit } from '../../hooks/useRequestSubmit';
+import { useRequestSubmit } from '../../hooks/useRequestSubmit';
 import { toFa } from '../../lib/persian';
 
 type Urgency = 'normal' | 'urgent';
@@ -31,7 +31,6 @@ export function ServicesPage() {
     setTried(true);
     if (selected.length === 0) {
       formRef.current?.querySelector<HTMLElement>('[aria-pressed]')?.focus();
-      focusFirstInvalid(formRef.current);
       return;
     }
     const title =
@@ -53,8 +52,8 @@ export function ServicesPage() {
 
   return (
     <>
-      <PageHeader back title="خدمات کاسپین" subtitle="درخواست خدمات انبار، دکوراسیون و تاسیسات" />
-      <div className="animate-view flex flex-col gap-4 px-4 pt-4">
+      <PageHeader back title="خدمات کاسپین" subtitle="انبار و کالا، دکوراسیون، تاسیسات" />
+      <div className="animate-view flex flex-col gap-4 px-4 pt-2">
         {ticket ? (
           <SuccessPanel
             ticket={ticket}
@@ -62,7 +61,7 @@ export function ServicesPage() {
             onNew={reset}
           />
         ) : (
-          <form ref={formRef} onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
+          <form ref={formRef} onSubmit={onSubmit} noValidate className="flex flex-col gap-5">
             <div role="tablist" aria-label="دسته خدمات" className="grid grid-cols-3 gap-2">
               {SERVICE_CATEGORIES.map((c) => {
                 const Icon = c.icon;
@@ -77,16 +76,16 @@ export function ServicesPage() {
                     aria-selected={active}
                     aria-controls="service-panel"
                     onClick={() => setTab(c.id)}
-                    className={`theme-fade relative flex min-h-20 flex-col items-center justify-center gap-1.5 rounded-2xl border p-2 text-xs font-bold transition-transform duration-150 active:scale-95 cursor-pointer ${
+                    className={`theme-fade relative flex min-h-20 flex-col items-center justify-center gap-1.5 rounded-[20px] border p-2 text-[13px] font-semibold transition-colors cursor-pointer ${
                       active
-                        ? 'border-gold bg-gold-soft text-gold-ink'
-                        : 'border-line bg-surface text-ink-2'
+                        ? 'border-primary bg-primary-soft text-on-primary-soft'
+                        : 'border-line bg-card text-ink'
                     }`}
                   >
-                    <Icon className="size-6" aria-hidden />
+                    <Icon className="size-6" strokeWidth={1.75} aria-hidden />
                     {c.title}
                     {count > 0 && (
-                      <span className="absolute -top-1.5 -start-1.5 inline-flex size-6 items-center justify-center rounded-full bg-gold text-[11px] font-extrabold text-on-gold">
+                      <span className="absolute top-1.5 start-1.5 inline-flex size-5 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-on-primary">
                         {toFa(count)}
                         <span className="sr-only"> مورد انتخاب‌شده</span>
                       </span>
@@ -102,9 +101,7 @@ export function ServicesPage() {
               aria-labelledby={`tab-${tab}`}
               className="flex flex-col gap-3"
             >
-              <p className="text-sm font-bold text-ink">
-                {category.title}: موارد مورد نیاز را انتخاب کنید
-              </p>
+              <p className="font-semibold text-ink">{category.title}</p>
               <div className="flex flex-wrap gap-2">
                 {category.items.map((item) => (
                   <Chip key={item} selected={selected.includes(item)} onToggle={() => toggle(item)}>
@@ -113,15 +110,15 @@ export function ServicesPage() {
                 ))}
               </div>
               {error && (
-                <p role="alert" className="text-xs font-bold text-danger">
+                <p role="alert" className="text-[13px] font-semibold text-danger">
                   {error}
                 </p>
               )}
             </Card>
 
             {selected.length > 0 && (
-              <Card className="flex flex-col gap-2">
-                <p className="text-sm font-bold text-ink">
+              <div className="flex flex-col gap-2">
+                <p className="px-1 text-[15px] font-semibold text-ink">
                   {toFa(selected.length)} خدمت انتخاب شده
                 </p>
                 <ul className="flex flex-wrap gap-2">
@@ -131,26 +128,29 @@ export function ServicesPage() {
                         type="button"
                         onClick={() => toggle(s)}
                         aria-label={`حذف ${s}`}
-                        className="inline-flex min-h-10 items-center gap-1 rounded-full bg-surface-2 px-3 text-xs font-bold text-ink cursor-pointer"
+                        className="inline-flex min-h-10 items-center gap-1 rounded-[10px] bg-field px-3 text-[13px] font-medium text-ink cursor-pointer"
                       >
                         {s}
-                        <X className="size-3.5" aria-hidden />
+                        <X className="size-4" aria-hidden />
                       </button>
                     </li>
                   ))}
                 </ul>
-              </Card>
+              </div>
             )}
 
-            <Segmented<Urgency>
-              label="اولویت"
-              value={urgency}
-              onChange={setUrgency}
-              options={[
-                { value: 'normal', label: 'عادی' },
-                { value: 'urgent', label: 'فوری' },
-              ]}
-            />
+            <div className="flex flex-col gap-2">
+              <p className="px-2 text-[15px] font-semibold text-ink">اولویت</p>
+              <Segmented<Urgency>
+                label="اولویت"
+                value={urgency}
+                onChange={setUrgency}
+                options={[
+                  { value: 'normal', label: 'عادی' },
+                  { value: 'urgent', label: 'فوری' },
+                ]}
+              />
+            </div>
 
             <Field label="توضیحات" helper="مثلاً تعداد اقلام، ساعت مناسب یا طبقه مقصد">
               {({ id, describedBy }) => (
@@ -160,12 +160,11 @@ export function ServicesPage() {
                   value={description}
                   maxLength={500}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="توضیحات تکمیلی…"
                 />
               )}
             </Field>
 
-            <Button type="submit" size="lg" block icon={Send} loading={submitting}>
+            <Button type="submit" block icon={Send} loading={submitting}>
               ثبت درخواست
             </Button>
           </form>

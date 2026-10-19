@@ -13,7 +13,7 @@ export default defineConfig({
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
         id: '/',
-        name: 'کاسپین پرو – سامانه هوشمند خدمات غرفه‌داران',
+        name: 'کاسپین پرو – خدمات غرفه‌داران کاسپین',
         short_name: 'کاسپین پرو',
         description: 'سامانه هوشمند خدمات غرفه‌داران پاساژ کاسپین',
         lang: 'fa',
@@ -22,8 +22,8 @@ export default defineConfig({
         scope: '/',
         display: 'standalone',
         orientation: 'portrait',
-        background_color: '#090D16',
-        theme_color: '#0F172A',
+        background_color: '#EDF1F5',
+        theme_color: '#EDF1F5',
         categories: ['business', 'productivity'],
         icons: [
           { src: 'pwa-192.png', sizes: '192x192', type: 'image/png' },

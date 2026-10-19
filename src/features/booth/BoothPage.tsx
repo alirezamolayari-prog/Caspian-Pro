@@ -1,10 +1,11 @@
-import { CalendarDays, Minus, Plus, Sparkles } from 'lucide-react';
+import { CalendarDays, Minus, Plus } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import { PageHeader } from '../../components/layout/Header';
 import { SuccessPanel } from '../../components/layout/Success';
 import { Badge } from '../../components/ui/Badge';
-import { Button } from '../../components/ui/Button';
+import { Button, IconButton } from '../../components/ui/Button';
 import { Card, SectionTitle } from '../../components/ui/Card';
+import { RadioCard } from '../../components/ui/Choice';
 import { Field, TextArea } from '../../components/ui/Field';
 import { cx } from '../../components/ui/cx';
 import { BOOTH_ZONES } from '../../data/catalog';
@@ -41,13 +42,13 @@ export function BoothPage() {
     e.preventDefault();
     setTried(true);
     if (!zone || start === null || !minLength(details, 10)) {
-      if (!zone || start === null)
+      if (!zone || start === null) {
         formRef.current
           ?.querySelector<HTMLElement>(
-            !zone ? '[data-group="zone"] [role="radio"]' : '[data-group="date"] [role="radio"]',
+            `[data-group="${!zone ? 'zone' : 'date'}"] [role="radio"]:not([disabled])`,
           )
           ?.focus();
-      else focusFirstInvalid(formRef.current);
+      } else focusFirstInvalid(formRef.current);
       return;
     }
     const z = BOOTH_ZONES.find((x) => x.id === zone)!;
@@ -67,8 +68,8 @@ export function BoothPage() {
 
   return (
     <>
-      <PageHeader back title="رزرو فضای فروش" subtitle="لابی‌ها و فضاهای ویژه برای کلکسیون جدید" />
-      <div className="animate-view flex flex-col gap-4 px-4 pt-4">
+      <PageHeader back title="رزرو فضای فروش" subtitle="لابی و فضاهای ویژه برای کلکسیون جدید" />
+      <div className="animate-view flex flex-col gap-4 px-4 pt-2">
         {ticket ? (
           <SuccessPanel
             ticket={ticket}
@@ -77,64 +78,40 @@ export function BoothPage() {
           />
         ) : (
           <form ref={formRef} onSubmit={onSubmit} noValidate className="flex flex-col gap-5">
-            <Card className="flex items-start gap-3 bg-gold-soft">
-              <Sparkles className="mt-0.5 size-5 shrink-0 text-gold-ink" aria-hidden />
-              <p className="text-sm leading-7 text-ink">
-                فضاهای مرکزی برای نمایش کلکسیون جدید یا فروش ویژه رزرو می‌شوند. هزینه پس از تایید
-                اعلام می‌شود.
-              </p>
-            </Card>
-
             <section aria-labelledby="zone-title">
-              <SectionTitle>
-                <span id="zone-title">انتخاب فضا</span>
-              </SectionTitle>
+              <SectionTitle id="zone-title">انتخاب فضا</SectionTitle>
               <div
                 role="radiogroup"
                 aria-labelledby="zone-title"
                 data-group="zone"
-                className="grid grid-cols-2 gap-2"
+                className="flex flex-col gap-2"
               >
-                {BOOTH_ZONES.map((z) => {
-                  const checked = zone === z.id;
-                  return (
-                    <button
-                      key={z.id}
-                      type="button"
-                      role="radio"
-                      aria-checked={checked}
-                      disabled={!z.free}
-                      onClick={() => setZone(z.id)}
-                      className={cx(
-                        'theme-fade flex min-h-24 flex-col items-start justify-between gap-2 rounded-2xl border bg-surface p-3 text-start shadow-card transition-transform duration-150 active:scale-95 cursor-pointer disabled:cursor-not-allowed disabled:opacity-55',
-                        checked ? 'border-gold ring-2 ring-gold/40' : 'border-line',
-                      )}
-                    >
-                      <span className="text-sm font-bold text-ink">{z.title}</span>
-                      <span className="flex w-full items-center justify-between gap-1">
-                        <span className="text-xs text-ink-2">{z.area}</span>
-                        <Badge tone={z.free ? 'success' : 'neutral'}>
-                          {z.free ? 'آزاد' : 'رزرو شده'}
-                        </Badge>
-                      </span>
-                    </button>
-                  );
-                })}
+                {BOOTH_ZONES.map((z) => (
+                  <RadioCard
+                    key={z.id}
+                    checked={zone === z.id}
+                    disabled={!z.free}
+                    onSelect={() => setZone(z.id)}
+                    aside={
+                      <Badge tone={z.free ? 'success' : 'neutral'}>
+                        {z.free ? 'آزاد' : 'رزرو شده'}
+                      </Badge>
+                    }
+                  >
+                    <span className="font-semibold text-ink">{z.title}</span>
+                    <span className="text-[13px] text-ink-2">{z.area}</span>
+                  </RadioCard>
+                ))}
               </div>
               {errors.zone && (
-                <p role="alert" className="mt-2 px-1 text-xs font-bold text-danger">
+                <p role="alert" className="mt-2 px-2 text-[13px] font-semibold text-danger">
                   {errors.zone}
                 </p>
               )}
             </section>
 
             <section aria-labelledby="date-title">
-              <SectionTitle>
-                <span id="date-title" className="flex items-center gap-2">
-                  <CalendarDays className="size-5 text-gold-ink" aria-hidden />
-                  تاریخ شروع
-                </span>
-              </SectionTitle>
+              <SectionTitle id="date-title">تاریخ شروع</SectionTitle>
               <div
                 role="radiogroup"
                 aria-labelledby="date-title"
@@ -153,68 +130,60 @@ export function BoothPage() {
                       aria-label={formatJalali(d)}
                       onClick={() => setStart(t)}
                       className={cx(
-                        'flex min-h-16 flex-col items-center justify-center rounded-2xl border text-xs transition-transform duration-150 active:scale-95 cursor-pointer',
+                        'flex min-h-16 flex-col items-center justify-center rounded-[14px] border text-[13px] transition-colors cursor-pointer',
                         checked
-                          ? 'border-gold bg-gold text-on-gold'
-                          : 'border-line bg-surface text-ink',
+                          ? 'border-primary bg-primary text-on-primary'
+                          : 'border-line bg-card text-ink hover:bg-row',
                       )}
                     >
-                      <span className={checked ? 'font-bold' : 'text-ink-2'}>
-                        {formatWeekday(d)}
-                      </span>
-                      <span className="font-extrabold">{formatJalaliShort(d)}</span>
+                      <span className={checked ? undefined : 'text-ink-2'}>{formatWeekday(d)}</span>
+                      <span className="font-bold">{formatJalaliShort(d)}</span>
                     </button>
                   );
                 })}
               </div>
               {errors.start && (
-                <p role="alert" className="mt-2 px-1 text-xs font-bold text-danger">
+                <p role="alert" className="mt-2 px-2 text-[13px] font-semibold text-danger">
                   {errors.start}
                 </p>
               )}
             </section>
 
             <section aria-labelledby="dur-title" className="flex flex-col gap-2">
-              <p id="dur-title" className="px-1 text-sm font-bold text-ink">
+              <p id="dur-title" className="px-2 text-[15px] font-semibold text-ink">
                 مدت (روز)
               </p>
               <Card className="flex items-center justify-between gap-3 p-2">
-                <Button
-                  variant="secondary"
-                  aria-label="افزایش روز"
+                <IconButton
                   icon={Plus}
+                  label="افزایش روز"
                   disabled={duration >= MAX_DAYS}
                   onClick={() => setDuration((d) => Math.min(MAX_DAYS, d + 1))}
-                  className="w-12 px-0"
-                >
-                  <span className="sr-only">افزایش</span>
-                </Button>
-                <output aria-live="polite" className="tabular text-xl font-extrabold text-ink">
+                  className="bg-field disabled:opacity-40"
+                />
+                <output aria-live="polite" className="tabular text-xl font-bold text-ink">
                   {toFa(duration)} روز
                 </output>
-                <Button
-                  variant="secondary"
-                  aria-label="کاهش روز"
+                <IconButton
                   icon={Minus}
+                  label="کاهش روز"
                   disabled={duration <= 1}
                   onClick={() => setDuration((d) => Math.max(1, d - 1))}
-                  className="w-12 px-0"
-                >
-                  <span className="sr-only">کاهش</span>
-                </Button>
+                  className="bg-field disabled:opacity-40"
+                />
               </Card>
               {start !== null && (
-                <p className="px-1 text-xs text-ink-2">
+                <p className="px-2 text-[13px] text-ink-2">
                   از {formatJalali(start)} تا {formatJalali(start + (duration - 1) * 86_400_000)}
                 </p>
               )}
             </section>
 
             <Field
-              label="محصولات و کلکسیون ویژه"
+              label="محصولات و کلکسیون"
               required
               error={errors.details}
-              helper="مثلاً «کلکسیون سرویس خواب نوزاد پاییز ۱۴۰۵ – ۶ مدل»"
+              helper="مثلاً «سرویس خواب نوزاد – ۶ مدل»"
             >
               {({ id, describedBy, invalid }) => (
                 <TextArea
@@ -225,12 +194,11 @@ export function BoothPage() {
                   value={details}
                   maxLength={500}
                   onChange={(e) => setDetails(e.target.value)}
-                  placeholder="نام کلکسیون، تعداد و ابعاد اقلام نمایشی…"
                 />
               )}
             </Field>
 
-            <Button type="submit" size="lg" block icon={CalendarDays} loading={submitting}>
+            <Button type="submit" block icon={CalendarDays} loading={submitting}>
               ثبت درخواست رزرو
             </Button>
           </form>

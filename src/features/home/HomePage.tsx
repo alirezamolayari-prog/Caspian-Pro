@@ -1,111 +1,94 @@
-import { ChevronLeft, SearchX } from 'lucide-react';
-import { useMemo, useState } from 'react';
-import { HomeHeader } from '../../components/layout/Header';
-import { Card, SectionTitle } from '../../components/ui/Card';
-import { EmptyState } from '../../components/ui/Feedback';
-import { cx } from '../../components/ui/cx';
-import { SERVICE_TILES } from '../../data/catalog';
-import { relativeTime } from '../../lib/persian';
+import { Clock } from 'lucide-react';
+import { HubHeader } from '../../components/layout/Header';
+import { Badge, type Tone } from '../../components/ui/Badge';
+import { IconTile } from '../../components/ui/Card';
+import { HOME_GROUPS, STORE, tileOf, type ModuleId } from '../../data/catalog';
+import { subscriptionSummary } from '../../api/parking';
+import { useParking } from '../../hooks/useParking';
+import { toFa } from '../../lib/persian';
 import { hrefFor, navigate } from '../../lib/router';
-import { useTickets } from '../../store/tickets';
-import { StatusBadge } from '../requests/StatusBadge';
-import { LoadingTimerCard } from './LoadingTimerCard';
+import { isOpen, useTickets } from '../../store/tickets';
+
+interface Chip {
+  tone: Tone;
+  text: string;
+}
+
+function useChips(): Partial<Record<ModuleId, Chip>> {
+  const tickets = useTickets((s) => s.items);
+  const { state } = useParking();
+  const chips: Partial<Record<ModuleId, Chip>> = {};
+  for (const id of ['services', 'maintenance', 'logistics', 'booth', 'advertising'] as const) {
+    const open = tickets.filter((t) => t.module === id && isOpen(t.status)).length;
+    if (open > 0) chips[id] = { tone: 'warning', text: `${toFa(open)} در جریان` };
+  }
+  if (state.status === 'ready') {
+    const s = subscriptionSummary(state.data);
+    chips.parking =
+      s.status === 'expired'
+        ? { tone: 'danger', text: 'منقضی' }
+        : {
+            tone: s.status === 'ending' ? 'warning' : 'success',
+            text: `${toFa(s.daysLeft)} روز مانده`,
+          };
+  }
+  return chips;
+}
 
 export function HomePage() {
-  const [query, setQuery] = useState('');
-  const tickets = useTickets((s) => s.items);
-  const tiles = useMemo(() => {
-    const q = query.trim();
-    if (!q) return SERVICE_TILES;
-    return SERVICE_TILES.filter((t) => `${t.title} ${t.subtitle} ${t.keywords}`.includes(q));
-  }, [query]);
-
+  const chips = useChips();
   return (
     <>
-      <HomeHeader query={query} onQuery={setQuery} />
-      <div className="relative -mt-12 flex flex-col gap-6 px-4">
-        {!query && <LoadingTimerCard />}
-
-        <section aria-labelledby="services-title">
-          <SectionTitle>
-            <span id="services-title">{query ? 'نتایج جستجو' : 'دسترسی سریع'}</span>
-          </SectionTitle>
-          {tiles.length === 0 ? (
-            <EmptyState
-              icon={SearchX}
-              title="خدمتی پیدا نشد"
-              body="عبارت دیگری مثل «تبلیغات» یا «آسانسور» را امتحان کنید."
-            />
-          ) : (
+      <HubHeader
+        greeting={`سلام ${STORE.manager}`}
+        title={STORE.name}
+        caption={`پلاک ${STORE.unit} – ${STORE.floor}`}
+      />
+      <div className="flex flex-col gap-6 px-4">
+        {HOME_GROUPS.map((group, gi) => (
+          <section key={group.title} aria-labelledby={`group-${gi}`}>
+            <h2 id={`group-${gi}`} className="mb-2 px-1 text-base font-semibold text-ink-2">
+              {group.title}
+            </h2>
             <ul className="grid grid-cols-2 gap-3">
-              {tiles.map((t, i) => {
-                const featured = i === 0 && !query;
-                const Icon = t.icon;
+              {group.modules.map((id) => {
+                const t = tileOf(id);
+                const chip = chips[id];
+                const wide = group.modules.length === 1;
                 return (
-                  <li key={t.id} className={cx(featured && 'col-span-2')}>
+                  <li key={id} className={wide ? 'col-span-2' : undefined}>
                     <a
-                      href={hrefFor(t.id)}
+                      href={hrefFor(id)}
                       onClick={(e) => {
                         e.preventDefault();
-                        navigate(t.id);
+                        navigate(id);
                       }}
-                      className={cx(
-                        'theme-fade group flex h-full min-h-28 rounded-2xl border border-line bg-surface p-4 shadow-card transition-transform duration-150 active:scale-95',
-                        featured ? 'items-center gap-4' : 'flex-col justify-between gap-3',
-                      )}
+                      className={`theme-fade flex h-full gap-3 rounded-[20px] border border-line bg-card p-4 transition-colors duration-150 hover:bg-row active:bg-row ${
+                        wide ? 'items-center' : 'flex-col'
+                      }`}
                     >
-                      <span
-                        className={cx(
-                          'inline-flex shrink-0 items-center justify-center rounded-2xl bg-gold-soft text-gold-ink ring-1 ring-gold/25',
-                          featured ? 'size-14' : 'size-12',
+                      <IconTile icon={t.icon} size="lg" />
+                      <span className="flex min-w-0 flex-1 flex-col items-start gap-1">
+                        {chip && !wide && (
+                          <Badge tone={chip.tone} icon={Clock}>
+                            {chip.text}
+                          </Badge>
                         )}
-                      >
-                        <Icon className={featured ? 'size-7' : 'size-6'} aria-hidden />
+                        <span className="text-lg font-bold text-ink">{t.title}</span>
+                        <span className="text-[13px] text-ink-2">{t.subtitle}</span>
                       </span>
-                      <span className="flex min-w-0 flex-1 flex-col">
-                        <span className="font-extrabold text-ink">{t.title}</span>
-                        <span className="text-xs text-ink-2">{t.subtitle}</span>
-                      </span>
-                      {featured && <ChevronLeft className="size-5 text-ink-2" aria-hidden />}
+                      {chip && wide && (
+                        <Badge tone={chip.tone} icon={Clock}>
+                          {chip.text}
+                        </Badge>
+                      )}
                     </a>
                   </li>
                 );
               })}
             </ul>
-          )}
-        </section>
-
-        {!query && tickets.length > 0 && (
-          <section aria-labelledby="recent-title">
-            <SectionTitle
-              action={
-                <a
-                  href={hrefFor('requests')}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    navigate('requests');
-                  }}
-                  className="inline-flex min-h-11 items-center gap-1 px-2 text-sm font-bold text-gold-ink"
-                >
-                  همه <ChevronLeft className="size-4" aria-hidden />
-                </a>
-              }
-            >
-              <span id="recent-title">آخرین درخواست‌ها</span>
-            </SectionTitle>
-            <Card className="divide-y divide-line p-0">
-              {tickets.slice(0, 3).map((t) => (
-                <div key={t.id} className="flex items-center justify-between gap-3 px-4 py-3">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-bold text-ink">{t.title}</p>
-                    <p className="text-xs text-ink-2">{relativeTime(t.updatedAt)}</p>
-                  </div>
-                  <StatusBadge status={t.status} />
-                </div>
-              ))}
-            </Card>
           </section>
-        )}
+        ))}
       </div>
     </>
   );

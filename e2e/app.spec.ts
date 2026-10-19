@@ -5,6 +5,7 @@ const ROUTES = [
   ['home', '/#/'],
   ['services', '/#/m/services'],
   ['logistics', '/#/m/logistics'],
+  ['parking', '/#/m/parking'],
   ['security', '/#/m/security'],
   ['booth', '/#/m/booth'],
   ['advertising', '/#/m/advertising'],
@@ -23,7 +24,10 @@ function trackErrors(page: Page) {
 }
 
 async function setTheme(page: Page, theme: 'light' | 'dark') {
-  await page.addInitScript((t) => localStorage.setItem('caspian-theme', t), theme);
+  await page.addInitScript((t) => {
+    localStorage.setItem('caspian-theme', t);
+    localStorage.setItem('caspian-notify-asked', 'browser,standalone');
+  }, theme);
 }
 
 for (const theme of ['light', 'dark'] as const) {
@@ -40,7 +44,7 @@ for (const theme of ['light', 'dark'] as const) {
         await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
         await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
         await page.evaluate(() => document.fonts.ready);
-        await page.waitForTimeout(350); // let entrance animations settle
+        await page.waitForTimeout(700); // entrance animations and mock data
 
         const overflow = await page.evaluate(
           () => document.documentElement.scrollWidth - window.innerWidth,
@@ -69,6 +73,7 @@ for (const theme of ['light', 'dark'] as const) {
 }
 
 test('every touch target in the bottom nav and header is at least 44px', async ({ page }) => {
+  await setTheme(page, 'light');
   await page.goto('/#/');
   const boxes = await page.locator('header button, nav a').evaluateAll((els) =>
     els.map((e) => {
@@ -81,19 +86,32 @@ test('every touch target in the bottom nav and header is at least 44px', async (
   }
 });
 
-test('theme toggle switches instantly and survives reload', async ({ page }) => {
+test('theme choice in profile applies at once and survives reload', async ({ page }) => {
   await page.emulateMedia({ colorScheme: 'light' });
-  await page.goto('/#/');
-  await page.getByRole('button', { name: 'حالت تیره' }).click();
+  await page.addInitScript(() =>
+    localStorage.setItem('caspian-notify-asked', 'browser,standalone'),
+  );
+  await page.goto('/#/profile');
+  await page.getByRole('radio', { name: 'تیره' }).click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await expect
     .poll(() => page.evaluate(() => getComputedStyle(document.body).backgroundColor))
-    .toBe('rgb(9, 13, 22)');
+    .toBe('rgb(22, 22, 22)');
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
 });
 
+test('notification sheet appears on first open', async ({ page }) => {
+  await page.goto('/#/');
+  await expect(page.getByRole('dialog', { name: 'اجازه ارسال اعلان' })).toBeVisible();
+  await page.getByRole('button', { name: /بعداً|متوجه شدم/ }).click();
+  await page.reload();
+  await page.waitForTimeout(1200);
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+});
+
 test('Vazirmatn is bundled and used', async ({ page }) => {
+  await setTheme(page, 'light');
   await page.goto('/#/');
   await page.evaluate(() => document.fonts.ready);
   const loaded = await page.evaluate(() =>
@@ -104,6 +122,7 @@ test('Vazirmatn is bundled and used', async ({ page }) => {
 
 test('service worker installs and the app reloads offline', async ({ page, context }, info) => {
   test.skip(info.project.name !== 'iphone', 'one project is enough');
+  await setTheme(page, 'light');
   await page.goto('/#/');
   await page.evaluate(async () => {
     await navigator.serviceWorker.ready;

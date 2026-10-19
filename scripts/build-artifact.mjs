@@ -8,7 +8,7 @@ const js = readFileSync(`${dir}/app.js`, 'utf8').replace(/<\/script/gi, '<\\/scr
 const cssFile = readdirSync(dir).find((f) => f.endsWith('.css'));
 const css = cssFile ? readFileSync(`${dir}/${cssFile}`, 'utf8') : '';
 const html = `<title>کاسپین پرو</title>
-<meta name="theme-color" content="#0F172A">
+<meta name="theme-color" content="#EDF1F5">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300..900&display=swap">

@@ -1,33 +1,14 @@
-import { ArrowRight, Bell, Moon, Search, Sun } from 'lucide-react';
+import { ArrowRight, Bell, CircleUserRound } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { STORE } from '../../data/catalog';
-import { greeting, toFa } from '../../lib/persian';
+import { toFa } from '../../lib/persian';
 import { goBack, navigate } from '../../lib/router';
 import { selectUnread, useNotifications } from '../../store/notifications';
-import { useUi } from '../../store/ui';
 import { IconButton } from '../ui/Button';
-
-export function ThemeToggle() {
-  const theme = useUi((s) => s.theme);
-  const toggle = useUi((s) => s.toggleTheme);
-  const dark = theme === 'dark';
-  return (
-    <IconButton
-      tone="header"
-      icon={dark ? Sun : Moon}
-      label={dark ? 'حالت روشن' : 'حالت تیره'}
-      aria-pressed={dark}
-      onClick={toggle}
-      className={dark ? 'text-gold' : undefined}
-    />
-  );
-}
 
 export function NotificationBell() {
   const unread = useNotifications(selectUnread);
   return (
     <IconButton
-      tone="header"
       icon={Bell}
       label={unread > 0 ? `اعلان‌ها، ${toFa(unread)} خوانده‌نشده` : 'اعلان‌ها'}
       onClick={() => navigate('notifications')}
@@ -35,7 +16,7 @@ export function NotificationBell() {
       {unread > 0 && (
         <span
           aria-hidden
-          className="animate-gold-pulse absolute -top-1 -start-1 inline-flex min-w-5 h-5 items-center justify-center rounded-full bg-gold px-1 text-[11px] font-extrabold text-on-gold ring-2 ring-header"
+          className="absolute top-2 end-2 inline-flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-danger px-1 text-[11px] font-bold text-card"
         >
           {toFa(unread > 9 ? '9+' : unread)}
         </span>
@@ -44,89 +25,49 @@ export function NotificationBell() {
   );
 }
 
-function Shell({ children, tall }: { children: ReactNode; tall?: boolean }) {
+/** Hub header (Owner style): small greeting, big title, bell + profile on the left. */
+export function HubHeader({
+  greeting,
+  title,
+  caption,
+}: {
+  greeting: string;
+  title: string;
+  caption?: string;
+}) {
   return (
-    <header
-      className={`safe-top relative overflow-hidden rounded-b-[2rem] bg-header text-on-header ${tall ? 'pb-16' : 'pb-6'}`}
-    >
-      {/* Decorative gold glow */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -top-24 -start-16 size-64 rounded-full bg-gold/20 blur-3xl"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -bottom-28 -end-10 size-56 rounded-full bg-[#334155]/40 blur-3xl"
-      />
-      <div className="relative px-4 pt-4">{children}</div>
+    <header className="safe-top flex items-start gap-1 px-4 pb-4 pt-6">
+      <div className="min-w-0 flex-1 px-1">
+        <p className="text-[15px] text-ink-2">{greeting}</p>
+        <h1 className="text-[26px] font-bold leading-tight text-ink">{title}</h1>
+        {caption && <p className="mt-0.5 text-[13px] text-ink-2">{caption}</p>}
+      </div>
+      <NotificationBell />
+      <IconButton icon={CircleUserRound} label="پروفایل" onClick={() => navigate('profile')} />
     </header>
   );
 }
 
-export function HomeHeader({ query, onQuery }: { query: string; onQuery: (q: string) => void }) {
-  return (
-    <Shell tall>
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={() => navigate('profile')}
-          aria-label="پروفایل غرفه"
-          className="inline-flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#F3DC8B] via-gold to-[#9C7A1C] text-lg font-black text-on-gold shadow-lg active:scale-95 cursor-pointer"
-        >
-          ر
-        </button>
-        <div className="min-w-0 flex-1">
-          <p className="text-xs text-on-header-2">
-            {greeting()}، {STORE.manager}
-          </p>
-          <h1 className="truncate text-lg font-extrabold">
-            {STORE.name} – پلاک {STORE.unit}
-          </h1>
-        </div>
-        <ThemeToggle />
-        <NotificationBell />
-      </div>
-      <form role="search" className="relative mt-4" onSubmit={(e) => e.preventDefault()}>
-        <label htmlFor="global-search" className="sr-only">
-          جستجوی خدمات
-        </label>
-        <Search
-          className="pointer-events-none absolute z-10 start-4 top-1/2 size-5 -translate-y-1/2 text-on-header-2"
-          aria-hidden
-        />
-        <input
-          id="global-search"
-          type="search"
-          value={query}
-          onChange={(e) => onQuery(e.target.value)}
-          placeholder="جستجوی خدمات، مثلاً «بارگیری»"
-          className="min-h-12 w-full rounded-2xl border border-white/10 bg-white/10 ps-12 pe-4 text-base text-on-header placeholder:text-on-header-2 outline-none backdrop-blur focus:border-gold focus:ring-4 focus:ring-gold/25"
-        />
-      </form>
-    </Shell>
-  );
-}
-
+/** Screen header: optional back button and a big title. */
 export function PageHeader({
   title,
   subtitle,
   back = false,
+  action,
 }: {
   title: string;
   subtitle?: string;
   back?: boolean;
+  action?: ReactNode;
 }) {
   return (
-    <Shell>
-      <div className="flex items-center gap-2">
-        {back && <IconButton tone="header" icon={ArrowRight} label="بازگشت" onClick={goBack} />}
-        <div className="min-w-0 flex-1 px-1">
-          <h1 className="truncate text-xl font-extrabold">{title}</h1>
-          {subtitle && <p className="truncate text-xs text-on-header-2">{subtitle}</p>}
-        </div>
-        <ThemeToggle />
-        <NotificationBell />
+    <header className="safe-top flex items-center gap-1 px-2 pb-2 pt-4">
+      {back && <IconButton icon={ArrowRight} label="بازگشت" onClick={goBack} />}
+      <div className={`min-w-0 flex-1 ${back ? 'px-1' : 'px-3'}`}>
+        <h1 className="text-[24px] font-bold leading-tight text-ink">{title}</h1>
+        {subtitle && <p className="text-[13px] text-ink-2">{subtitle}</p>}
       </div>
-    </Shell>
+      {action}
+    </header>
   );
 }

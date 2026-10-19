@@ -16,13 +16,13 @@ interface UiState {
   themePref: ThemePref;
   theme: Resolved;
   toasts: Toast[];
-  permissionsOpen: boolean;
+  notifyPromptOpen: boolean;
   setThemePref: (p: ThemePref) => void;
   toggleTheme: () => void;
   syncSystemTheme: () => void;
   toast: (t: Omit<Toast, 'id'>) => void;
   dismissToast: (id: string) => void;
-  setPermissionsOpen: (open: boolean) => void;
+  setNotifyPromptOpen: (open: boolean) => void;
 }
 
 const THEME_KEY = 'caspian-theme';
@@ -48,7 +48,7 @@ function applyTheme(theme: Resolved) {
   document.documentElement.dataset.theme = theme;
   document
     .querySelector('meta[name="theme-color"]')
-    ?.setAttribute('content', theme === 'dark' ? '#060911' : '#0F172A');
+    ?.setAttribute('content', theme === 'dark' ? '#161616' : '#EDF1F5');
 }
 
 function readPref(): ThemePref {
@@ -62,7 +62,7 @@ export const useUi = create<UiState>((set, get) => ({
   themePref: initialPref,
   theme: resolve(initialPref),
   toasts: [],
-  permissionsOpen: false,
+  notifyPromptOpen: false,
   setThemePref: (p) => {
     if (p === 'system') useHostTheme = false;
     void rawStorage.setItem(THEME_KEY, p);
@@ -84,7 +84,7 @@ export const useUi = create<UiState>((set, get) => ({
     setTimeout(() => get().dismissToast(id), 4500);
   },
   dismissToast: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
-  setPermissionsOpen: (open) => set({ permissionsOpen: open }),
+  setNotifyPromptOpen: (open) => set({ notifyPromptOpen: open }),
 }));
 
 applyTheme(resolve(initialPref));

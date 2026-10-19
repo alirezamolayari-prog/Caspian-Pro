@@ -1,4 +1,4 @@
-import { BadgeCheck, IdCard, Phone, ShieldAlert, Siren } from 'lucide-react';
+import { BadgeCheck, IdCard, ShieldAlert, Siren } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { dispatchSecurity } from '../../api/mock';
 import { PageHeader } from '../../components/layout/Header';
@@ -7,7 +7,6 @@ import { Card, SectionTitle } from '../../components/ui/Card';
 import { Segmented } from '../../components/ui/Choice';
 import { Field, Select, TextInput } from '../../components/ui/Field';
 import { Modal } from '../../components/ui/Modal';
-import { cx } from '../../components/ui/cx';
 import { STAFF_ROLES, SUPPORT_CONTACTS } from '../../data/catalog';
 import { focusFirstInvalid } from '../../hooks/useRequestSubmit';
 import { displayId } from '../../lib/ids';
@@ -42,43 +41,45 @@ function SosSection() {
   };
 
   return (
-    <Card className="flex flex-col items-center gap-4 border-danger/30 py-6 text-center">
+    <Card className="flex flex-col items-center gap-4 py-6 text-center">
       {dispatched ? (
         <div role="status" className="flex flex-col items-center gap-3">
           <span className="inline-flex size-16 items-center justify-center rounded-full bg-success-soft text-success">
-            <BadgeCheck className="size-9" aria-hidden />
+            <BadgeCheck className="size-9" strokeWidth={1.75} aria-hidden />
           </span>
-          <p className="text-lg font-extrabold text-ink">تیم حراست در مسیر غرفه شماست</p>
-          <p className="text-sm text-ink-2">
+          <p className="text-lg font-bold text-ink">تیم حراست در مسیر غرفه شماست</p>
+          <p className="text-[15px] text-ink-2">
             زمان تقریبی رسیدن: {toFa(dispatched.eta)} دقیقه – کد {displayId(dispatched.id)}
           </p>
-          <div className="grid w-full grid-cols-2 gap-2">
+          <p className="text-[13px] text-ink-2">
+            تلفن حراست:{' '}
             <a
               href={`tel:${SUPPORT_CONTACTS[1].phone}`}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-line bg-surface px-4 text-sm font-bold text-ink active:scale-95"
+              className="font-semibold text-ink tabular"
+              dir="ltr"
             >
-              <Phone className="size-5" aria-hidden /> تماس با حراست
+              {toFa(SUPPORT_CONTACTS[1].phone)}
             </a>
-            <Button variant="secondary" onClick={() => setDispatched(null)}>
-              مشکل برطرف شد
-            </Button>
-          </div>
+          </p>
+          <Button variant="outlined" onClick={() => setDispatched(null)}>
+            مشکل برطرف شد
+          </Button>
         </div>
       ) : (
         <>
           <button
             type="button"
             onClick={() => setStep(1)}
-            className="animate-sos relative inline-flex size-40 flex-col items-center justify-center gap-1 rounded-full bg-gradient-to-b from-[#EF4444] to-[#B91C1C] text-white shadow-[0_12px_40px_-8px_rgba(220,38,38,0.7)] ring-4 ring-[#FECACA]/40 transition-transform duration-150 active:scale-95 cursor-pointer"
+            className="animate-sos inline-flex size-32 flex-col items-center justify-center gap-1 rounded-full bg-sos text-on-sos transition-transform duration-150 active:scale-95 cursor-pointer"
           >
-            <Siren className="size-12" aria-hidden />
-            <span className="text-lg font-black">SOS</span>
+            <Siren className="size-10" strokeWidth={1.75} aria-hidden />
+            <span className="text-base font-bold">اضطراری</span>
             <span className="sr-only">فراخوان اضطراری حراست به غرفه</span>
           </button>
           <div>
-            <p className="font-extrabold text-ink">فراخوان اضطراری حراست به غرفه</p>
-            <p className="text-xs text-ink-2">
-              پس از دو مرحله تایید، نزدیک‌ترین نیروی حراست اعزام می‌شود.
+            <p className="font-semibold text-ink">فراخوان اضطراری حراست به غرفه</p>
+            <p className="text-[13px] text-ink-2">
+              پس از دو مرحله تایید، نیروی حراست اعزام می‌شود.
             </p>
           </div>
         </>
@@ -88,10 +89,9 @@ function SosSection() {
         open={step === 1}
         onClose={() => setStep(0)}
         title="مرحله ۱ از ۲ – نوع وضعیت"
-        tone="danger"
         footer={
           <div className="grid grid-cols-2 gap-2">
-            <Button variant="secondary" onClick={() => setStep(0)}>
+            <Button variant="outlined" onClick={() => setStep(0)}>
               انصراف
             </Button>
             <Button variant="danger" onClick={() => setStep(2)}>
@@ -100,8 +100,8 @@ function SosSection() {
           </div>
         }
       >
-        <p className="mb-3 text-sm text-ink-2">
-          نوع وضعیت اضطراری را انتخاب کنید تا نیروی مناسب اعزام شود.
+        <p className="mb-3 text-[15px] text-ink-2">
+          نوع وضعیت را انتخاب کنید تا نیروی مناسب اعزام شود.
         </p>
         <Segmented<Emergency>
           label="نوع وضعیت اضطراری"
@@ -116,11 +116,10 @@ function SosSection() {
         open={step === 2}
         onClose={() => setStep(0)}
         title="مرحله ۲ از ۲ – تایید نهایی"
-        tone="danger"
         dismissible={!sending}
         footer={
           <div className="grid grid-cols-2 gap-2">
-            <Button variant="secondary" disabled={sending} onClick={() => setStep(1)}>
+            <Button variant="outlined" disabled={sending} onClick={() => setStep(1)}>
               بازگشت
             </Button>
             <Button variant="danger" icon={ShieldAlert} loading={sending} onClick={confirm}>
@@ -129,15 +128,9 @@ function SosSection() {
           </div>
         }
       >
-        <div className="flex flex-col items-center gap-3 text-center">
-          <span className="inline-flex size-14 items-center justify-center rounded-full bg-danger-soft text-danger">
-            <Siren className="size-8" aria-hidden />
-          </span>
-          <p className="text-sm leading-7 text-ink">
-            با تایید، نیروی حراست برای «{kind}» فوراً به <strong>پلاک ۲۴ – همکف</strong> اعزام
-            می‌شود. فراخوان بی‌دلیل پیگیری انضباطی دارد.
-          </p>
-        </div>
+        <p className="text-[15px] leading-7 text-ink">
+          با تایید، نیروی حراست برای «{kind}» فوراً به <strong>پلاک ۲۴ – همکف</strong> اعزام می‌شود.
+        </p>
       </Modal>
     </Card>
   );
@@ -193,12 +186,8 @@ function PassGenerator() {
   };
 
   return (
-    <section aria-labelledby="pass-title" className="flex flex-col gap-4">
-      <SectionTitle>
-        <span id="pass-title" className="flex items-center gap-2">
-          <IdCard className="size-5 text-gold-ink" aria-hidden /> صدور کارت تردد موقت پرسنل
-        </span>
-      </SectionTitle>
+    <section aria-labelledby="pass-title" className="flex flex-col gap-3">
+      <SectionTitle id="pass-title">کارت تردد موقت پرسنل</SectionTitle>
       <Card>
         <form ref={formRef} onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
           <Field label="نام و نام خانوادگی" required error={err('name')}>
@@ -213,7 +202,6 @@ function PassGenerator() {
                 maxLength={60}
                 onChange={(e) => setName(e.target.value)}
                 onBlur={() => setTouched((t) => ({ ...t, name: true }))}
-                placeholder="مثلاً علی محمدی"
               />
             )}
           </Field>
@@ -267,13 +255,13 @@ function PassGenerator() {
               )}
             </Field>
           </div>
-          <Button type="submit" block size="lg" icon={IdCard}>
-            صدور کارت QR
+          <Button type="submit" block icon={IdCard}>
+            صدور کارت
           </Button>
         </form>
       </Card>
       {passes.length > 0 && (
-        <ul className={cx('flex flex-col gap-4')} aria-label="کارت‌های صادرشده">
+        <ul className="flex flex-col gap-3" aria-label="کارت‌های صادرشده">
           {passes.map((p) => (
             <li key={p.id}>
               <PassCard pass={p} onRemove={() => removePass(p.id)} />
@@ -288,8 +276,8 @@ function PassGenerator() {
 export function SecurityPage() {
   return (
     <>
-      <PageHeader back title="حراست و انتظامات" subtitle="کارت تردد پرسنل و فراخوان اضطراری" />
-      <div className="animate-view flex flex-col gap-6 px-4 pt-4">
+      <PageHeader back title="حراست و انتظامات" subtitle="فراخوان اضطراری و کارت تردد" />
+      <div className="animate-view flex flex-col gap-6 px-4 pt-2">
         <SosSection />
         <PassGenerator />
       </div>
