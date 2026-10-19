@@ -1,0 +1,31 @@
+// Maps `react` to the UMD global loaded from cdnjs in the preview artifact.
+const R = window.React;
+export default R;
+export const {
+  Children,
+  Component,
+  Fragment,
+  StrictMode,
+  createContext,
+  createElement,
+  forwardRef,
+  memo,
+  useCallback,
+  useContext,
+  useDebugValue,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  useTransition,
+  useDeferredValue,
+  useInsertionEffect,
+  useImperativeHandle,
+  startTransition,
+  isValidElement,
+  cloneElement,
+} = R;
