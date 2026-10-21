@@ -7,7 +7,8 @@ export default defineConfig({
   testDir: './e2e',
   timeout: 30_000,
   fullyParallel: true,
-  reporter: [['list']],
+  reporter: process.env.CI ? [['list'], ['github']] : [['list']],
+  retries: process.env.CI ? 1 : 0,
   use: {
     baseURL: 'http://localhost:4173',
     locale: 'fa-IR',
