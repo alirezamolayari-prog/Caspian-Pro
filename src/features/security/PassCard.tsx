@@ -1,7 +1,7 @@
 import { Download, Trash2 } from 'lucide-react';
 import { Badge } from '../../components/ui/Badge';
 import { Button, IconButton } from '../../components/ui/Button';
-import { STORE } from '../../data/catalog';
+import { getStoreInfo } from '../../store/session';
 import { useNow } from '../../hooks/useNow';
 import { displayId } from '../../lib/ids';
 import { formatJalali, toFa } from '../../lib/persian';
@@ -50,7 +50,7 @@ async function downloadPass(p: StaffPass, qrUrl: string) {
   ctx.fillText(p.name, W / 2, 740);
   ctx.fillStyle = '#CBD5E1';
   ctx.font = `500 30px ${font}`;
-  ctx.fillText(`${p.role} – ${STORE.name} پلاک ${STORE.unit}`, W / 2, 795);
+  ctx.fillText(`${p.role} – ${getStoreInfo().name} پلاک ${toFa(getStoreInfo().unit)}`, W / 2, 795);
   const [py, pm, pd] = p.date.split('-').map(Number) as [number, number, number];
   ctx.fillText(formatJalali(new Date(py, pm - 1, pd)), W / 2, 860);
   ctx.fillStyle = '#FFFFFF';
@@ -80,7 +80,7 @@ export function PassCard({ pass, onRemove }: { pass: StaffPass; onRemove?: () =>
           <p className="text-[13px] text-ink-2">کارت تردد موقت</p>
           <h3 className="text-xl font-bold text-ink">{pass.name}</h3>
           <p className="text-[13px] text-ink-2">
-            {pass.role} – {STORE.name} پلاک {STORE.unit}
+            {pass.role} – {getStoreInfo().name} پلاک {toFa(getStoreInfo().unit)}
           </p>
         </div>
         <Badge tone={status === 'valid' ? 'success' : status === 'upcoming' ? 'warning' : 'danger'}>

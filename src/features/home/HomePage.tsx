@@ -2,7 +2,8 @@ import { Clock } from 'lucide-react';
 import { HubHeader } from '../../components/layout/Header';
 import { Badge, type Tone } from '../../components/ui/Badge';
 import { IconTile } from '../../components/ui/Card';
-import { HOME_GROUPS, STORE, tileOf, type ModuleId } from '../../data/catalog';
+import { HOME_GROUPS, tileOf, type ModuleId } from '../../data/catalog';
+import { useStoreInfo } from '../../store/session';
 import { subscriptionSummary } from '../../api/parking';
 import { useParking } from '../../hooks/useParking';
 import { toFa } from '../../lib/persian';
@@ -36,6 +37,7 @@ function useChips(): Partial<Record<ModuleId, Chip>> {
 }
 
 export function HomePage() {
+  const STORE = useStoreInfo();
   const chips = useChips();
   return (
     <>

@@ -20,6 +20,7 @@ interface Photo {
   id: string;
   url: string;
   name: string;
+  file: File;
 }
 
 export function MaintenancePage() {
@@ -69,6 +70,7 @@ export function MaintenancePage() {
         id: `${f.name}-${f.size}-${Math.random()}`,
         url: URL.createObjectURL(f),
         name: f.name,
+        file: f,
       });
     }
     setPhotos((p) => [...p, ...next]);
@@ -91,12 +93,16 @@ export function MaintenancePage() {
       return;
     }
     const cat = MAINTENANCE_CATEGORIES.find((c) => c.id === category)!;
-    const ok = await submit(`${cat.title} – ${floor}`, [
-      wing,
-      { low: 'اولویت کم', normal: 'اولویت عادی', high: 'اولویت بالا' }[priority],
-      description.trim(),
-      ...(photos.length ? [`${toFa(photos.length)} عکس پیوست`] : []),
-    ]);
+    const ok = await submit(
+      `${cat.title} – ${floor}`,
+      [
+        wing,
+        { low: 'اولویت کم', normal: 'اولویت عادی', high: 'اولویت بالا' }[priority],
+        description.trim(),
+        ...(photos.length ? [`${toFa(photos.length)} عکس پیوست`] : []),
+      ],
+      photos.map((p) => p.file),
+    );
     if (ok) {
       photos.forEach((p) => URL.revokeObjectURL(p.url));
       setPhotos([]);

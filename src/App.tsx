@@ -15,7 +15,11 @@ import { RequestsPage } from './features/requests/RequestsPage';
 import { SecurityPage } from './features/security/SecurityPage';
 import { ServicesPage } from './features/services/ServicesPage';
 import { SupportPage } from './features/support/SupportPage';
+import { isServerMode } from './api/config';
+import { LoginPage } from './features/auth/LoginPage';
 import { useBackgroundSimulation } from './hooks/useBackgroundSimulation';
+import { useServerSync } from './hooks/useServerSync';
+import { useSession } from './store/session';
 import { useRoute, type Route } from './lib/router';
 import { useUi } from './store/ui';
 
@@ -51,7 +55,10 @@ export default function App() {
   const key = route.module ?? route.tab;
   const first = useRef(true);
 
+  const loggedOut = useSession((s) => isServerMode() && !s.token);
+
   useBackgroundSimulation();
+  useServerSync();
 
   useEffect(() => {
     const mq = window.matchMedia?.('(prefers-color-scheme: dark)');
@@ -68,6 +75,17 @@ export default function App() {
     window.scrollTo({ top: 0 });
     mainRef.current?.focus({ preventScroll: true });
   }, [key]);
+
+  if (loggedOut) {
+    return (
+      <div className="relative mx-auto min-h-dvh max-w-md overflow-x-hidden bg-bg theme-fade sm:border-x sm:border-line">
+        <main id="main">
+          <LoginPage />
+        </main>
+        <Toaster />
+      </div>
+    );
+  }
 
   return (
     <div className="relative mx-auto min-h-dvh max-w-md overflow-x-hidden bg-bg theme-fade sm:border-x sm:border-line">

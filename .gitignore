@@ -8,3 +8,7 @@ playwright-report/
 .env*
 .DS_Store
 dist-artifact/
+!.env.server
+!.env.example
+server/data/
+dist-server/

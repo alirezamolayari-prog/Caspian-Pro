@@ -102,6 +102,10 @@ test('theme choice in profile applies at once and survives reload', async ({ pag
 });
 
 test('notification sheet appears on first open', async ({ page }) => {
+  // Newer headless Chromium reports notifications as "denied" by default; a fresh phone says "default".
+  await page.addInitScript(() => {
+    Object.defineProperty(Notification, 'permission', { get: () => 'default' });
+  });
   await page.goto('/#/');
   await expect(page.getByRole('dialog', { name: 'اجازه ارسال اعلان' })).toBeVisible();
   await page.getByRole('button', { name: /بعداً|متوجه شدم/ }).click();

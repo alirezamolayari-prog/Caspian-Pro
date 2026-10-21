@@ -2,6 +2,7 @@ import { AlertCircle } from 'lucide-react';
 import {
   useId,
   type InputHTMLAttributes,
+  type Ref,
   type ReactNode,
   type SelectHTMLAttributes,
   type TextareaHTMLAttributes,
@@ -61,7 +62,7 @@ export function TextInput({
   invalid,
   className,
   ...rest
-}: InputHTMLAttributes<HTMLInputElement> & { invalid?: boolean }) {
+}: InputHTMLAttributes<HTMLInputElement> & { invalid?: boolean; ref?: Ref<HTMLInputElement> }) {
   return (
     <input
       aria-invalid={invalid || undefined}

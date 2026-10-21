@@ -21,6 +21,8 @@ interface NotificationsState {
   add: (n: Omit<Notice, 'id' | 'createdAt' | 'read'>) => void;
   markRead: (id: string) => void;
   markAllRead: () => void;
+  /** Replaces the list with the server's (server mode). */
+  replaceAll: (items: Notice[]) => void;
 }
 
 const now = Date.now();
@@ -68,6 +70,7 @@ export const useNotifications = create<NotificationsState>()(
       markRead: (id) =>
         set((s) => ({ items: s.items.map((i) => (i.id === id ? { ...i, read: true } : i)) })),
       markAllRead: () => set((s) => ({ items: s.items.map((i) => ({ ...i, read: true })) })),
+      replaceAll: (items) => set({ items }),
     }),
     { name: 'caspian-notifications', storage: safeStorage, version: 1 },
   ),

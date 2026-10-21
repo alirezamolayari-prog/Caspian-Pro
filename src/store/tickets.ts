@@ -4,7 +4,8 @@ import type { ModuleId } from '../data/catalog';
 import { makeTicketId } from '../lib/ids';
 import { safeStorage } from '../lib/storage';
 
-export type TicketStatus = 'submitted' | 'in_review' | 'approved' | 'rejected' | 'done';
+/** `queued` exists only on the device: saved offline, not yet sent to the server. */
+export type TicketStatus = 'queued' | 'submitted' | 'in_review' | 'approved' | 'rejected' | 'done';
 
 export interface Ticket {
   id: string;
@@ -17,6 +18,7 @@ export interface Ticket {
 }
 
 export const STATUS_LABEL: Record<TicketStatus, string> = {
+  queued: 'در صف ارسال',
   submitted: 'ثبت شد',
   in_review: 'در حال بررسی',
   approved: 'تایید شد',
@@ -24,12 +26,16 @@ export const STATUS_LABEL: Record<TicketStatus, string> = {
   done: 'انجام شد',
 };
 
-export const isOpen = (s: TicketStatus) => s === 'submitted' || s === 'in_review';
+export const isOpen = (s: TicketStatus) => s === 'queued' || s === 'submitted' || s === 'in_review';
 
 interface TicketsState {
   items: Ticket[];
   add: (t: Pick<Ticket, 'module' | 'title' | 'details'>) => Ticket;
   setStatus: (id: string, status: TicketStatus) => void;
+  /** Inserts or replaces a ticket by id (server mode). */
+  upsert: (t: Ticket, replaceId?: string) => void;
+  /** Replaces the list with the server's, keeping tickets still queued on the device. */
+  replaceFromServer: (items: Ticket[]) => void;
 }
 
 const now = Date.now();
@@ -73,6 +79,17 @@ export const useTickets = create<TicketsState>()(
       setStatus: (id, status) =>
         set((s) => ({
           items: s.items.map((i) => (i.id === id ? { ...i, status, updatedAt: Date.now() } : i)),
+        })),
+      upsert: (t, replaceId) =>
+        set((s) => {
+          const rest = s.items.filter((i) => i.id !== t.id && i.id !== replaceId);
+          return { items: [t, ...rest].sort((a, b) => b.createdAt - a.createdAt) };
+        }),
+      replaceFromServer: (items) =>
+        set((s) => ({
+          items: [...s.items.filter((i) => i.status === 'queued'), ...items].sort(
+            (a, b) => b.createdAt - a.createdAt,
+          ),
         })),
     }),
     { name: 'caspian-tickets', storage: safeStorage, version: 1 },

@@ -3,8 +3,10 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import pkg from './package.json' with { type: 'json' };
 
 export default defineConfig({
+  define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   plugins: [
     react(),
     tailwindcss(),
@@ -34,6 +36,10 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         navigateFallback: '/index.html',
+        // The API and management panel must always hit the network.
+        navigateFallbackDenylist: [/^\/api\//, /^\/admin/, /^\/\.well-known\//],
+        // Shows web push notifications and opens the right screen on tap.
+        importScripts: ['push-sw.js'],
       },
     }),
   ],

@@ -15,6 +15,7 @@ import { EmptyState } from '../../components/ui/Feedback';
 import { useNow } from '../../hooks/useNow';
 import { relativeTime, toFa } from '../../lib/persian';
 import { navigate } from '../../lib/router';
+import { markAllNoticesRead, markNoticeRead } from '../../api';
 import { selectUnread, useNotifications, type NoticeKind } from '../../store/notifications';
 
 const KIND: Record<NoticeKind, { icon: LucideIcon; label: string }> = {
@@ -26,7 +27,7 @@ const KIND: Record<NoticeKind, { icon: LucideIcon; label: string }> = {
 };
 
 export function NotificationsPage() {
-  const { items, markRead, markAllRead } = useNotifications();
+  const items = useNotifications((s) => s.items);
   const unread = useNotifications(selectUnread);
   const now = useNow(30_000);
   return (
@@ -38,7 +39,7 @@ export function NotificationsPage() {
       <div className="flex flex-col gap-3 px-4 pt-2">
         {unread > 0 && (
           <div className="flex justify-end">
-            <Button variant="text" icon={CheckCheck} onClick={markAllRead}>
+            <Button variant="text" icon={CheckCheck} onClick={markAllNoticesRead}>
               خواندن همه
             </Button>
           </div>
@@ -54,7 +55,7 @@ export function NotificationsPage() {
                   <button
                     type="button"
                     onClick={() => {
-                      markRead(n.id);
+                      markNoticeRead(n.id);
                       if (n.link) navigate(n.link);
                     }}
                     className="flex w-full gap-3 px-4 py-3 text-start cursor-pointer"

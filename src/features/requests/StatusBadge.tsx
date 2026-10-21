@@ -1,8 +1,9 @@
-import { CheckCircle2, CircleDot, Hourglass, XCircle } from 'lucide-react';
+import { CheckCircle2, CircleDot, CloudOff, Hourglass, XCircle } from 'lucide-react';
 import { Badge, type Tone } from '../../components/ui/Badge';
 import { STATUS_LABEL, type TicketStatus } from '../../store/tickets';
 
 const MAP: Record<TicketStatus, { tone: Tone; icon: typeof CheckCircle2 }> = {
+  queued: { tone: 'neutral', icon: CloudOff },
   submitted: { tone: 'info', icon: CircleDot },
   in_review: { tone: 'warning', icon: Hourglass },
   approved: { tone: 'success', icon: CheckCircle2 },

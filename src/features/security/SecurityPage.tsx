@@ -1,6 +1,6 @@
 import { BadgeCheck, IdCard, ShieldAlert, Siren } from 'lucide-react';
 import { useRef, useState } from 'react';
-import { dispatchSecurity } from '../../api/mock';
+import { dispatchSecurity } from '../../api';
 import { PageHeader } from '../../components/layout/Header';
 import { Button } from '../../components/ui/Button';
 import { Card, SectionTitle } from '../../components/ui/Card';
@@ -29,7 +29,20 @@ function SosSection() {
 
   const confirm = async () => {
     setSending(true);
-    const { etaMinutes, ticket } = await dispatchSecurity();
+    let result: Awaited<ReturnType<typeof dispatchSecurity>>;
+    try {
+      result = await dispatchSecurity();
+    } catch {
+      setSending(false);
+      setStep(0);
+      toast({
+        tone: 'error',
+        title: 'پیام اضطراری ارسال نشد',
+        body: `فوراً با حراست تماس بگیرید: ${toFa(SUPPORT_CONTACTS[1].phone)}`,
+      });
+      return;
+    }
+    const { etaMinutes, ticket } = result;
     setSending(false);
     setStep(0);
     setDispatched({ eta: etaMinutes, id: ticket.id });

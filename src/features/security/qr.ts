@@ -1,6 +1,6 @@
 import QRCode from 'qrcode';
 import { useEffect, useState } from 'react';
-import { STORE } from '../../data/catalog';
+import { getStoreInfo } from '../../store/session';
 import type { StaffPass } from '../../store/security';
 
 /** QR colours are fixed (navy on white) so every scanner can read them in both themes. */
@@ -11,7 +11,7 @@ export function passPayload(p: StaffPass) {
   return JSON.stringify({
     v: 1,
     id: p.id,
-    unit: STORE.unit,
+    unit: getStoreInfo().unit,
     name: p.name,
     date: p.date,
     from: p.from,

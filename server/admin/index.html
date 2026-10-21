@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>مدیریت کاسپین پرو</title>
+    <style>
+      :root {
+        --bg: #edf1f5;
+        --card: #fff;
+        --row: #f2f5f8;
+        --field: #e3e8ee;
+        --line: #d8dfe7;
+        --ink: #0f172a;
+        --ink2: #475569;
+        --primary: #334155;
+        --onp: #fff;
+        --ok: #1b5e20;
+        --okbg: #e3f1e4;
+        --warn: #7a4b00;
+        --warnbg: #fff0d6;
+        --bad: #b71c1c;
+        --badbg: #fbe4e4;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #161616;
+          --card: #212121;
+          --row: #282828;
+          --field: #2c2c2c;
+          --line: #383838;
+          --ink: #f2f2f2;
+          --ink2: #b3b3b3;
+          --primary: #d9d9d9;
+          --onp: #1a1a1a;
+          --ok: #a5d6a7;
+          --okbg: #1f3321;
+          --warn: #ffcc80;
+          --warnbg: #3a2c12;
+          --bad: #ef9a9a;
+          --badbg: #3b1d1d;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: Vazirmatn, Tahoma, sans-serif;
+        font-size: 15px;
+      }
+      main {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 16px;
+      }
+      h1 {
+        font-size: 22px;
+        margin: 8px 4px 16px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        padding: 16px;
+        margin-bottom: 16px;
+      }
+      .tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+      }
+      button,
+      .btn {
+        font: inherit;
+        border: 0;
+        border-radius: 999px;
+        min-height: 44px;
+        padding: 0 18px;
+        background: var(--field);
+        color: var(--ink);
+        cursor: pointer;
+      }
+      button.primary {
+        background: var(--primary);
+        color: var(--onp);
+        font-weight: 700;
+      }
+      button[aria-pressed='true'] {
+        background: var(--primary);
+        color: var(--onp);
+      }
+      input,
+      select,
+      textarea {
+        font: inherit;
+        width: 100%;
+        border: 1px solid transparent;
+        background: var(--field);
+        color: var(--ink);
+        border-radius: 16px;
+        padding: 10px 14px;
+        min-height: 44px;
+      }
+      input:focus,
+      select:focus,
+      textarea:focus,
+      button:focus-visible {
+        outline: 2px solid var(--primary);
+        outline-offset: 2px;
+      }
+      label {
+        display: block;
+        font-size: 13px;
+        font-weight: 700;
+        margin: 10px 4px 6px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 0 12px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        text-align: start;
+        padding: 10px 8px;
+        vertical-align: top;
+      }
+      tbody tr:nth-child(odd) {
+        background: var(--row);
+      }
+      th {
+        font-size: 13px;
+        color: var(--ink2);
+      }
+      .muted {
+        color: var(--ink2);
+        font-size: 13px;
+      }
+      .chip {
+        display: inline-block;
+        border-radius: 10px;
+        padding: 2px 10px;
+        font-size: 13px;
+        font-weight: 700;
+        background: var(--field);
+      }
+      .s-submitted,
+      .s-in_review {
+        background: var(--warnbg);
+        color: var(--warn);
+      }
+      .s-approved,
+      .s-done {
+        background: var(--okbg);
+        color: var(--ok);
+      }
+      .s-rejected {
+        background: var(--badbg);
+        color: var(--bad);
+      }
+      .row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .msg {
+        padding: 10px 14px;
+        border-radius: 14px;
+        margin: 8px 0;
+      }
+      .msg.ok {
+        background: var(--okbg);
+        color: var(--ok);
+      }
+      .msg.err {
+        background: var(--badbg);
+        color: var(--bad);
+      }
+      .photos img {
+        max-width: 120px;
+        max-height: 120px;
+        border-radius: 12px;
+        margin: 4px;
+        border: 1px solid var(--line);
+      }
+      [hidden] {
+        display: none !important;
+      }
+      @media (max-width: 640px) {
+        .hide-sm {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>مدیریت کاسپین پرو</h1>
+
+      <section id="login" class="card">
+        <label for="token">رمز مدیریت</label>
+        <div class="row">
+          <input id="token" type="password" autocomplete="current-password" style="flex: 1" />
+          <button class="primary" id="loginBtn">ورود</button>
+        </div>
+        <div id="loginMsg"></div>
+      </section>
+
+      <div id="app" hidden>
+        <nav class="tabs" aria-label="بخش‌ها">
+          <button data-tab="tickets" aria-pressed="true">درخواست‌ها</button>
+          <button data-tab="stores" aria-pressed="false">غرفه‌ها</button>
+          <button data-tab="announce" aria-pressed="false">اطلاعیه</button>
+          <button id="logout">خروج</button>
+        </nav>
+
+        <section id="tab-tickets" class="card">
+          <div class="row" style="margin-bottom: 8px">
+            <label for="filter" style="margin: 0">نمایش</label>
+            <select id="filter" style="width: auto">
+              <option value="open">در جریان</option>
+              <option value="">همه</option>
+              <option value="approved">تایید شده</option>
+              <option value="done">انجام شده</option>
+              <option value="rejected">رد شده</option>
+            </select>
+            <button id="refresh">به‌روزرسانی</button>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>کد</th>
+                <th>غرفه</th>
+                <th>درخواست</th>
+                <th class="hide-sm">زمان</th>
+                <th>وضعیت</th>
+              </tr>
+            </thead>
+            <tbody id="tickets"></tbody>
+          </table>
+          <p id="ticketsEmpty" class="muted" hidden>درخواستی نیست.</p>
+        </section>
+
+        <section id="tab-stores" class="card" hidden>
+          <h2 style="font-size: 17px; margin: 0 4px 8px">افزودن یا ویرایش غرفه</h2>
+          <form id="storeForm">
+            <div class="grid">
+              <div>
+                <label for="s-id">شناسه (لاتین، مثلاً u24)</label
+                ><input id="s-id" required pattern="[A-Za-z0-9_-]{1,40}" dir="ltr" />
+              </div>
+              <div><label for="s-unit">پلاک</label><input id="s-unit" required /></div>
+              <div>
+                <label for="s-floor">طبقه</label><input id="s-floor" required placeholder="همکف" />
+              </div>
+              <div><label for="s-name">نام غرفه</label><input id="s-name" required /></div>
+              <div>
+                <label for="s-manager">مدیر غرفه</label
+                ><input id="s-manager" required placeholder="آقای ..." />
+              </div>
+              <div><label for="s-category">نوع کالا</label><input id="s-category" /></div>
+            </div>
+            <label for="s-phones">شماره‌های مجاز برای ورود (با ویرگول جدا کنید)</label>
+            <input id="s-phones" dir="ltr" placeholder="09121234567, 09351234567" />
+            <div class="row" style="margin-top: 12px">
+              <button class="primary" type="submit">ذخیره</button>
+            </div>
+            <div id="storeMsg"></div>
+          </form>
+          <table style="margin-top: 16px">
+            <thead>
+              <tr>
+                <th>پلاک</th>
+                <th>نام</th>
+                <th class="hide-sm">مدیر</th>
+                <th>شماره‌ها</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="stores"></tbody>
+          </table>
+        </section>
+
+        <section id="tab-announce" class="card" hidden>
+          <form id="announceForm">
+            <label for="a-title">عنوان</label><input id="a-title" required maxlength="120" />
+            <label for="a-body">متن</label
+            ><textarea id="a-body" rows="4" required maxlength="1000"></textarea>
+            <label for="a-link">با زدن اعلان باز شود</label>
+            <select id="a-link">
+              <option value="">فقط اعلان‌ها</option>
+              <option value="booth">رزرو فضای فروش</option>
+              <option value="parking">پارکینگ</option>
+              <option value="support">پشتیبانی و قوانین</option>
+              <option value="maintenance">گزارش خرابی</option>
+            </select>
+            <div class="row" style="margin-top: 12px">
+              <button class="primary" type="submit">ارسال برای همه غرفه‌ها</button>
+            </div>
+            <div id="announceMsg"></div>
+          </form>
+        </section>
+      </div>
+    </main>
+    <script>
+      (() => {
+        const $ = (id) => document.getElementById(id);
+        const FA = '۰۱۲۳۴۵۶۷۸۹';
+        const fa = (v) => String(v).replace(/\d/g, (d) => FA[d]);
+        const STATUS = {
+          submitted: 'ثبت شد',
+          in_review: 'در حال بررسی',
+          approved: 'تایید شد',
+          rejected: 'رد شد',
+          done: 'انجام شد',
+        };
+        const MODULE = {
+          services: 'خدمات کاسپین',
+          logistics: 'بارگیری و تخلیه',
+          parking: 'پارکینگ',
+          security: 'حراست',
+          booth: 'رزرو فضای فروش',
+          advertising: 'تبلیغات',
+          maintenance: 'خرابی مشاعات',
+          support: 'پشتیبانی',
+        };
+        const esc = (s) =>
+          String(s).replace(
+            /[&<>"']/g,
+            (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c],
+          );
+        const when = (t) =>
+          new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          }).format(t);
+        let token = sessionStorage.getItem('caspian-admin') || '';
+
+        async function api(path, opts = {}) {
+          const res = await fetch('/api/admin' + path, {
+            ...opts,
+            headers: {
+              authorization: 'Bearer ' + token,
+              ...(opts.body ? { 'content-type': 'application/json' } : {}),
+            },
+          });
+          if (res.status === 403) {
+            showLogin('رمز مدیریت درست نیست.');
+            throw new Error('forbidden');
+          }
+          const ct = res.headers.get('content-type') || '';
+          const data = ct.includes('json') ? await res.json() : await res.blob();
+          if (!res.ok) throw new Error((data && data.message) || 'خطا');
+          return data;
+        }
+        const msg = (el, text, ok) => {
+          el.innerHTML = text
+            ? `<p class="msg ${ok ? 'ok' : 'err'}" role="status">${esc(text)}</p>`
+            : '';
+        };
+
+        function showLogin(text) {
+          $('app').hidden = true;
+          $('login').hidden = false;
+          msg($('loginMsg'), text, false);
+        }
+        async function enter() {
+          try {
+            await api('/stores');
+          } catch {
+            return;
+          }
+          sessionStorage.setItem('caspian-admin', token);
+          $('login').hidden = true;
+          $('app').hidden = false;
+          loadTickets();
+          loadStores();
+        }
+        $('loginBtn').onclick = () => {
+          token = $('token').value.trim();
+          enter();
+        };
+        $('token').onkeydown = (e) => {
+          if (e.key === 'Enter') $('loginBtn').click();
+        };
+        $('logout').onclick = () => {
+          sessionStorage.removeItem('caspian-admin');
+          token = '';
+          showLogin('');
+        };
+
+        document.querySelectorAll('[data-tab]').forEach(
+          (b) =>
+            (b.onclick = () => {
+              document
+                .querySelectorAll('[data-tab]')
+                .forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+              ['tickets', 'stores', 'announce'].forEach(
+                (t) => ($('tab-' + t).hidden = t !== b.dataset.tab),
+              );
+            }),
+        );
+
+        async function loadTickets() {
+          const f = $('filter').value;
+          const q = f === 'open' ? '?open=1' : f ? '?status=' + f : '';
+          const { items } = await api('/tickets' + q);
+          $('ticketsEmpty').hidden = items.length > 0;
+          $('tickets').innerHTML = items
+            .map(
+              (t) => `
+      <tr>
+        <td dir="ltr" style="text-align:end">${esc(t.id)}</td>
+        <td>${esc(t.storeName)}<div class="muted">پلاک ${fa(esc(t.storeUnit))}</div></td>
+        <td><strong>${esc(MODULE[t.module] || t.module)}</strong> – ${esc(t.title)}
+          <div class="muted">${t.details.map(esc).join(' – ')}</div>
+          ${t.photos ? `<button class="photosBtn" data-id="${esc(t.id)}" style="min-height:36px;margin-top:6px">${fa(t.photos)} عکس</button><div class="photos" id="ph-${esc(t.id)}"></div>` : ''}
+        </td>
+        <td class="hide-sm muted">${when(t.createdAt)}</td>
+        <td>
+          <span class="chip s-${t.status}">${STATUS[t.status]}</span>
+          <select data-id="${esc(t.id)}" aria-label="تغییر وضعیت ${esc(t.id)}" style="margin-top:6px">
+            ${Object.entries(STATUS)
+              .map(
+                ([k, v]) =>
+                  `<option value="${k}" ${k === t.status ? 'selected' : ''}>${v}</option>`,
+              )
+              .join('')}
+          </select>
+        </td>
+      </tr>`,
+            )
+            .join('');
+          $('tickets')
+            .querySelectorAll('select')
+            .forEach(
+              (s) =>
+                (s.onchange = async () => {
+                  const note = s.value === 'rejected' ? prompt('علت رد (اختیاری):') || '' : '';
+                  await api('/tickets/' + encodeURIComponent(s.dataset.id), {
+                    method: 'PATCH',
+                    body: JSON.stringify({ status: s.value, note }),
+                  });
+                  loadTickets();
+                }),
+            );
+          $('tickets')
+            .querySelectorAll('.photosBtn')
+            .forEach(
+              (b) =>
+                (b.onclick = async () => {
+                  const box = $('ph-' + b.dataset.id);
+                  const { items } = await api(
+                    '/tickets/' + encodeURIComponent(b.dataset.id) + '/photos',
+                  );
+                  box.innerHTML = '';
+                  for (const p of items) {
+                    const blob = await api(
+                      '/tickets/' + encodeURIComponent(b.dataset.id) + '/photos/' + p.id,
+                    );
+                    const img = document.createElement('img');
+                    img.src = URL.createObjectURL(blob);
+                    img.alt = 'عکس پیوست';
+                    box.appendChild(img);
+                  }
+                  b.hidden = true;
+                }),
+            );
+        }
+        $('filter').onchange = loadTickets;
+        $('refresh').onclick = loadTickets;
+        setInterval(() => {
+          if (!$('app').hidden && !$('tab-tickets').hidden) loadTickets();
+        }, 30000);
+
+        async function loadStores() {
+          const { items } = await api('/stores');
+          $('stores').innerHTML = items
+            .map(
+              (s) => `
+      <tr${s.active ? '' : ' style="opacity:.5"'}>
+        <td>${fa(esc(s.unit))}<div class="muted">${esc(s.floor)}</div></td>
+        <td>${esc(s.name)}${s.active ? '' : ' <span class="chip">غیرفعال</span>'}</td>
+        <td class="hide-sm">${esc(s.manager)}</td>
+        <td dir="ltr" style="text-align:end">${s.phones.map(esc).join('<br>')}</td>
+        <td><button class="edit" data-id="${esc(s.id)}" style="min-height:36px">ویرایش</button>
+            ${s.active ? `<button class="off" data-id="${esc(s.id)}" style="min-height:36px">غیرفعال</button>` : ''}</td>
+      </tr>`,
+            )
+            .join('');
+          $('stores')
+            .querySelectorAll('.edit')
+            .forEach(
+              (b) =>
+                (b.onclick = () => {
+                  const s = items.find((x) => x.id === b.dataset.id);
+                  for (const k of ['id', 'unit', 'floor', 'name', 'manager', 'category'])
+                    $('s-' + k).value = s[k];
+                  $('s-phones').value = s.phones.join(', ');
+                  $('s-id').focus();
+                }),
+            );
+          $('stores')
+            .querySelectorAll('.off')
+            .forEach(
+              (b) =>
+                (b.onclick = async () => {
+                  if (!confirm('این غرفه غیرفعال شود؟ همه دستگاه‌هایش از حساب خارج می‌شوند.'))
+                    return;
+                  await api('/stores/' + encodeURIComponent(b.dataset.id), { method: 'DELETE' });
+                  loadStores();
+                }),
+            );
+        }
+        $('storeForm').onsubmit = async (e) => {
+          e.preventDefault();
+          const v = (k) => $('s-' + k).value.trim();
+          try {
+            await api('/stores/' + encodeURIComponent(v('id')), {
+              method: 'PUT',
+              body: JSON.stringify({
+                name: v('name'),
+                unit: v('unit'),
+                floor: v('floor'),
+                manager: v('manager'),
+                category: v('category'),
+                phones: v('phones')
+                  .split(/[,،;\s]+/)
+                  .filter(Boolean),
+              }),
+            });
+            msg($('storeMsg'), 'ذخیره شد.', true);
+            e.target.reset();
+            loadStores();
+          } catch (err) {
+            msg($('storeMsg'), err.message, false);
+          }
+        };
+
+        $('announceForm').onsubmit = async (e) => {
+          e.preventDefault();
+          try {
+            const r = await api('/announce', {
+              method: 'POST',
+              body: JSON.stringify({
+                title: $('a-title').value,
+                body: $('a-body').value,
+                link: $('a-link').value || undefined,
+              }),
+            });
+            msg($('announceMsg'), `برای ${fa(r.stores)} غرفه ارسال شد.`, true);
+            e.target.reset();
+          } catch (err) {
+            msg($('announceMsg'), err.message, false);
+          }
+        };
+
+        if (token) enter();
+      })();
+    </script>
+  </body>
+</html>

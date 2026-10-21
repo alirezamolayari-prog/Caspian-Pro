@@ -5,7 +5,11 @@ export function makeTicketId(rand: () => number = Math.random): string {
   return `CSP-${String(Math.floor(rand() * 900000) + 100000)}`;
 }
 
-export const displayId = (id: string) => toFa(id);
+/** Prefix for tickets saved offline that have no server id yet. */
+export const QUEUED_PREFIX = 'Q-';
+
+export const displayId = (id: string) =>
+  id.startsWith(QUEUED_PREFIX) ? 'پس از اتصال صادر می‌شود' : toFa(id);
 
 export function makeKey(): string {
   return typeof crypto !== 'undefined' && 'randomUUID' in crypto

@@ -4,10 +4,12 @@ import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
+import pkg from './package.json' with { type: 'json' };
 
 const shim = (f: string) => fileURLToPath(new URL(`./artifact/${f}`, import.meta.url));
 
 export default defineConfig({
+  define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   plugins: [react({ jsxRuntime: 'automatic' }), tailwindcss()],
   resolve: {
     alias: [

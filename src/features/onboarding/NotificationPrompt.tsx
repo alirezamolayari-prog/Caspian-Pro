@@ -5,6 +5,7 @@ import { IconTile } from '../../components/ui/Card';
 import { Modal } from '../../components/ui/Modal';
 import { useUi } from '../../store/ui';
 import { markPrompted, pushSupport, shouldPrompt } from './notifications';
+import { ensurePushSubscription } from './push';
 
 const BENEFITS = [
   { icon: ClipboardCheck, text: 'نتیجه درخواست‌ها و تایید مجوزها' },
@@ -34,6 +35,7 @@ export function NotificationPrompt() {
     setOpen(false);
     try {
       const result = await Notification.requestPermission();
+      if (result === 'granted') void ensurePushSubscription();
       toast(
         result === 'granted'
           ? { tone: 'success', title: 'اعلان‌ها فعال شد' }

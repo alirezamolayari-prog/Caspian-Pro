@@ -1,10 +1,12 @@
 import { useEffect } from 'react';
+import { isServerMode } from '../api/config';
 import { useNotifications } from '../store/notifications';
 import { useTickets, STATUS_LABEL } from '../store/tickets';
 
-/** Mock server push: advances ticket statuses like the server will. */
+/** Demo mode only: advances ticket statuses like the server does. */
 export function useBackgroundSimulation() {
   useEffect(() => {
+    if (isServerMode()) return;
     const tick = () => {
       const now = Date.now();
       const { items, setStatus } = useTickets.getState();

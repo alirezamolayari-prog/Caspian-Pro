@@ -1,8 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
+import { ApiError } from '../api/http';
 import { parkingSource, type ParkingSubscription } from '../api/parking';
 
 type State =
-  { status: 'loading' } | { status: 'error' } | { status: 'ready'; data: ParkingSubscription };
+  | { status: 'loading' }
+  | { status: 'error' }
+  | { status: 'none' }
+  | { status: 'ready'; data: ParkingSubscription };
 
 let cache: ParkingSubscription | null = null;
 
@@ -20,8 +24,12 @@ export function useParking() {
         cache = data;
         if (alive) setState({ status: 'ready', data });
       },
-      () => {
-        if (alive && !cache) setState({ status: 'error' });
+      (e: unknown) => {
+        if (!alive) return;
+        if (e instanceof ApiError && e.code === 'no_subscription') {
+          cache = null;
+          setState({ status: 'none' });
+        } else if (!cache) setState({ status: 'error' });
       },
     );
     return () => {

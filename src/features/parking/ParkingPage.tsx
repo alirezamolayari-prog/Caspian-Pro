@@ -181,6 +181,13 @@ export function ParkingPage() {
             }
           />
         )}
+        {state.status === 'none' && (
+          <EmptyState
+            icon={SquareParking}
+            title="اشتراک پارکینگ ثبت نشده است"
+            body="برای خرید یا ثبت اشتراک به دفتر پارکینگ کاسپین مراجعه کنید."
+          />
+        )}
         {state.status === 'ready' && <Subscription data={state.data} />}
       </div>
     </>

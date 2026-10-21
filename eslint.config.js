@@ -6,7 +6,16 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
-    ignores: ['dist', 'dist-artifact', 'dev-dist', 'coverage', 'playwright-report', 'test-results'],
+    ignores: [
+      'dist',
+      'dist-server',
+      'server/data',
+      'dist-artifact',
+      'dev-dist',
+      'coverage',
+      'playwright-report',
+      'test-results',
+    ],
   },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
