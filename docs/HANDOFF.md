@@ -1,6 +1,25 @@
 # Caspian Pro – Session Handoff
 
-> **برای علیرضا (خلاصه فارسی):** این فایل همه کارهایی است که تا امروز روی «کاسپین پرو» انجام شده. در سشن بعدی Claude، اول بگویید: «فایل `docs/HANDOFF.md` در ریپو Caspian-Pro را بخوان و از همان‌جا ادامه بده». نسخه فعلی ۱٫۱٫۰ است: ظاهر شبیه اپ Caspian Owner، حالت تیره خاکستری، صفحه خانه با گروه‌های جدا، بخش پارکینگ فقط‌نمایشی (بدون پرداخت)، و پنجره اجازه اعلان در اولین باز شدن. همه‌چیز فعلاً با داده نمونه کار می‌کند و سرور واقعی هنوز وصل نیست.
+> **برای علیرضا (خلاصه فارسی):** این فایل همه کارهایی است که تا امروز روی «کاسپین پرو» انجام شده. در سشن بعدی Claude بگویید: «فایل `docs/HANDOFF.md` در ریپو Caspian-Pro را بخوان و از همان‌جا ادامه بده».
+>
+> نسخه فعلی ۱٫۲٫۰ است. **سرور واقعی ساخته شده** (پوشه `server/`). امکانات سرور:
+>
+> - ورود با کد پیامکی
+> - درخواست‌ها با کد پیگیری واقعی
+> - اعلان روی گوشی
+> - صف آفلاین
+> - پیامک اضطراری حراست
+> - یادآوری پارکینگ
+> - پنل مدیریت در `/admin`
+>
+> برای روشن شدن واقعی، این چهار چیز را باید شما تهیه کنید:
+>
+> 1. سرور (داخل ایران)
+> 2. دامنه
+> 3. حساب کاوه‌نگار
+> 4. پروکسی برای اعلان اندروید
+>
+> اطلاعات API نرم‌افزار پارکینگ هم لازم است. مراحل نصب در `docs/DEPLOY.md` است. پیش‌نمایش Claude هنوز در حالت نمایشی (داده نمونه) است.
 
 ---
 
@@ -11,10 +30,10 @@
 | Product        | **Caspian Pro (کاسپین پرو)** – tenant-services app for the ~80 store owners of Caspian furniture mall                 |
 | Owner          | Alireza Molayari (not a programmer; tests by using the app; report to him in short, plain Persian)                    |
 | Repo           | https://github.com/alirezamolayari-prog/Caspian-Pro – branch **`main`** (Alireza approved pushing straight to `main`) |
-| Version        | **1.1.0** (`package.json`)                                                                                            |
-| Last commit    | `034847e` Redesign v1.1 in the Caspian Owner style                                                                    |
+| Version        | **1.2.0** (`package.json`, `server/package.json`)                                                                     |
+| Last commit    | see `git log` (v1.2 work: server, login, push, offline queue, docs)                                                   |
 | Live preview   | https://claude.ai/artifact/KoNaM8pDon9H8KWJDRg9xh (private; same URL for every republish)                             |
-| Data           | All mock. No backend yet.                                                                                             |
+| Data           | Demo mode (mock, default build + preview) **or** server mode (`npm run build:server` + `server/`). Not deployed yet.  |
 | Sister project | `alirezamolayari-prog/caspian-owner` (Flutter app for mall owners). Caspian Pro copies its look.                      |
 
 ## 2. History
@@ -39,6 +58,24 @@ Alireza's feedback (in Persian), and what was done:
 | Ignore the original prompt; do it properly                                | Gold, gradients, glow, Google Fonts styling all dropped                                                |
 | Add Parking: see how much of the parking subscription is left, no payment | New read-only Parking page behind a `ParkingSource` interface                                          |
 
+### v1.2 (current) – "do all next steps"
+
+Alireza asked for every suggested next step. Done in this session:
+
+| Step                       | Result                                                                                                                                                                                                                                                                                                                                               |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CI red                     | Cause: newer Chromium on GitHub reports `Notification.permission = 'denied'` in headless, so the first-open sheet didn't show. Test now stubs `default`. CI also has a `server` job and Playwright `github` reporter (annotations readable via `gh api .../check-runs/<id>/annotations`, since log/artifact downloads are blocked from the sandbox). |
+| Backend                    | `server/` – Node ≥ 22.18 runs `.ts` directly (type stripping), Hono 4, `node:sqlite`. No build step.                                                                                                                                                                                                                                                 |
+| Login                      | Phone + 5-digit SMS OTP (Kavenegar, or `console` provider). Only phones registered in `members`. 2-min codes, 60 s resend, 5 tries. Session token stored hashed, 180 days.                                                                                                                                                                           |
+| Real tickets/notifications | Client switches by `VITE_API_URL`. `src/api/index.ts` is the facade screens call.                                                                                                                                                                                                                                                                    |
+| Offline queue              | `src/api/outbox.ts`; idempotent by `clientId` (server `UNIQUE(store_id, client_id)`). Status `queued` «در صف ارسال».                                                                                                                                                                                                                                 |
+| Parking                    | Server adapter (`mock`/`http`), hourly job sends «یادآوری پایان اشتراک» at ≤ 7 days and once more at expiry. Client shows «اشتراک پارکینگ ثبت نشده» on 404.                                                                                                                                                                                          |
+| Web push                   | VAPID via `web-push`; `public/push-sw.js` imported into the Workbox SW; subscription saved after permission. `PUSH_PROXY` because FCM is filtered in Iran.                                                                                                                                                                                           |
+| Android                    | `android/twa-manifest.json` (placeholders `CHANGE-ME.example.ir`), `/.well-known/assetlinks.json` from env, steps in `docs/DEPLOY.md` §8. Not built (needs JDK/Android SDK + real domain).                                                                                                                                                           |
+| Docs                       | `docs/DEPLOY.md` (fa), `docs/GUIDE-fa.md` (tenant guide), `CHANGELOG.md`, README.                                                                                                                                                                                                                                                                    |
+
+Bugs found and fixed on the way: the offline queue's lock never released after an empty run (queued items would never send); home caption and SOS confirm showed Latin/hard-coded plate.
+
 **Do not re-add:** the timer card, extension/penalty flow, GPS helper, gold/navy luxury theme, home search, header theme toggle, or any **invoicing (فاکتورساز)** module (permanently out of scope).
 
 ## 3. Alireza's standing preferences
@@ -51,6 +88,7 @@ Alireza's feedback (in Persian), and what was done:
 - Vazirmatn is **bundled** (`@fontsource-variable/vazirmatn`), because Google is often filtered in Iran.
 - Parking shows information only: **no payment gateway**. Renewals happen at the parking office.
 - Push to `main` after the quality gate passes. Commit messages in English.
+- He is not a programmer: anything he must do himself (buy server, SMS panel, domain) goes in plain Persian with exact steps.
 
 ## 4. Features (v1.1)
 
@@ -83,9 +121,15 @@ Cards show status chips: «N در جریان» for open tickets, parking «۱۲ 
 - **پروفایل:** store card, theme روشن/تیره/سیستم, notification status row (opens the prompt again; if blocked, explains how to unblock), install hint (hidden when installed), version.
 - **Notification prompt:** `features/onboarding/NotificationPrompt.tsx` + `notifications.ts`. Shown 0.8 s after first open per mode (`browser`, `standalone`), remembered in localStorage key **`caspian-notify-asked`**. On iOS Safari (not installed) it explains «افزودن به صفحه اصلی» instead. «اجازه می‌دهم» calls `Notification.requestPermission()`.
 
+**Server mode additions (v1.2):** login screen (`features/auth/LoginPage.tsx`) before everything; profile shows phone and «خروج از حساب» (confirm sheet; unsubscribes push); store identity from server (`useStoreInfo()` / `getStoreInfo()` in `store/session.ts`, demo falls back to `STORE`); sync every 30 s + on focus + on `online` + on push message (`hooks/useServerSync.ts`); maintenance photos compressed to ≤1600 px JPEG (`lib/image.ts`) and uploaded; SOS failure toast shows the security phone.
+
+**Management panel** (`server/admin/index.html`, served at `/admin`, token = `ADMIN_TOKEN`): open/all tickets, change status (reject asks for a note), view photos, add/edit/deactivate stores with phones, announcement to all stores.
+
 ## 5. Tech stack
 
-Vite 8.3, React 19.3, TypeScript 6 (strict, `noUncheckedIndexedAccess`), Tailwind CSS 4.3 (`@tailwindcss/vite`), Zustand 5 (persist, safe localStorage wrapper), lucide-react 1.59, qrcode 1.5, vite-plugin-pwa 2.0 (Workbox `generateSW`, autoUpdate), Vitest 5 + Testing Library + jsdom, Playwright 1.64 + @axe-core/playwright, ESLint 10 + typescript-eslint, Prettier 3. Node 22.
+**App:** Vite 8.3, React 19.3, TypeScript 6 (strict, `noUncheckedIndexedAccess`), Tailwind CSS 4.3 (`@tailwindcss/vite`), Zustand 5 (persist, safe localStorage wrapper), lucide-react 1.59, qrcode 1.5, vite-plugin-pwa 2.0 (Workbox `generateSW`, autoUpdate), Vitest 5 + Testing Library + jsdom, Playwright 1.64 + @axe-core/playwright, ESLint 10 + typescript-eslint, Prettier 3. Node 22.
+
+**Server:** Node ≥ 22.18 (runs TypeScript directly, `--env-file-if-exists=.env`), Hono 4 + @hono/node-server, `node:sqlite` (WAL), web-push 3.6, tests with `node:test` (`server/test/api.test.ts`).
 
 Routing: hash routes (`src/lib/router.ts`): `#/`, `#/requests`, `#/notifications`, `#/profile`, `#/m/<moduleId>`. Works in iOS standalone and TWAs. In-app back uses `history.back()` when navigated inside the app.
 
@@ -126,6 +170,23 @@ e2e/app.spec.ts            browser tests + screenshots → docs/screenshots/
 docs/screenshots/          every screen, light and dark (iPhone size)
 ```
 
+```
+server/
+  src/index.ts     start: API + /admin + static dist/, hourly parking job
+  src/app.ts       all HTTP routes (public, tenant, /api/admin/*, assetlinks)
+  src/services.ts  data access + rules (tickets, notices, stores, push subs)
+  src/auth.ts      OTP + sessions;  src/sms.ts console/Kavenegar;  src/push.ts VAPID
+  src/parking.ts   ParkingAdapter (mock/http) + parser;  src/jobs.ts reminders
+  src/db.ts        schema;  src/domain.ts shared vocabulary + phone normaliser
+  src/cli.ts       npm run admin -- vapid | store | import | stores | status | announce | parking-reminders
+  admin/index.html management panel (vanilla JS, RTL, light/dark)
+  .env.example     every setting, commented;  stores.example.csv
+src/api/           config.ts (mode), http.ts (client), index.ts (facade), outbox.ts (queue), mock.ts, parking.ts
+deploy/            caspian-pro.service (systemd), nginx.conf
+android/           twa-manifest.json for Bubblewrap
+e2e/server.spec.ts real-server browser tests (Playwright project `server`, port 8788)
+```
+
 ## 7. Design tokens (`src/index.css`)
 
 | Token (Tailwind name)                              | Light             | Dark (gray)               |
@@ -146,10 +207,14 @@ Rule: no hex colours in components (exceptions: QR stays navy-on-white; download
 
 ## 8. Plugging in real systems
 
-- **Backend:** replace the functions in `src/api/mock.ts` with HTTP calls (keep signatures). Ticket ids come from the server.
-- **Parking software:** implement `ParkingSource.getSubscription(): Promise<ParkingSubscription>` against its API, then `setParkingSource(realSource)` at startup. Fields: `plan, startsAt, endsAt, vehiclesAllowed, floor, plates[{two,letter,three,region}], recentVisits[{id,plate,enteredAt,exitedAt|null}], updatedAt`. No payment.
-- **Store identity:** `STORE` in `catalog.ts` is hard-coded (مبلمان رویال, پلاک ۲۴, آقای رضایی); should come from login.
-- **Push:** only the permission request exists. A push server (VAPID) and subscription upload are not built.
+All code is done; what remains is configuration on a real host (`docs/DEPLOY.md`):
+
+- **Server + domain + HTTPS:** systemd + nginx + certbot files in `deploy/`.
+- **SMS:** `SMS_PROVIDER=kavenegar`, `KAVENEGAR_API_KEY`, `KAVENEGAR_TEMPLATE` (verify-lookup template with `%token%`). Another panel = implement `SmsProvider` in `server/src/sms.ts`.
+- **Parking software:** `PARKING_PROVIDER=http` + `PARKING_URL/TOKEN`; contract in DEPLOY §7. Different vendor shape → edit `server/src/parking.ts`.
+- **Push:** `npm run admin -- vapid` → env; `PUSH_PROXY` on an Iranian host.
+- **Stores:** `/admin` or `npm run admin -- import stores.csv`.
+- **Android:** fill `android/twa-manifest.json`, Bubblewrap build, put SHA-256 in `ANDROID_SHA256`.
 
 ## 9. Commands and quality gate
 
@@ -159,11 +224,13 @@ npm run dev                 # http://localhost:5173
 npm run check               # prettier --check, eslint (0 warnings), tsc -b, vitest, vite build
 npm run build && PW_CHROMIUM=/opt/pw-browsers/chromium npm run test:e2e   # cloud sandbox
 npm run test:e2e            # local machine after `npx playwright install chromium`
+cd server && npm test       # server tests (node:test)
+cd server && npm run typecheck
 PW_CHROMIUM=/opt/pw-browsers/chromium node scripts/generate-icons.mjs
 node scripts/build-artifact.mjs   # → dist-artifact/caspian-pro.html (gitignored)
 ```
 
-Last results (v1.1): **61** Vitest tests and **88** Playwright tests pass (all routes × light/dark × 3 viewports: RTL, no horizontal scroll, axe WCAG 2.1 AA clean, no console errors; 44px targets; theme persists; notification sheet once; Vazirmatn loaded; offline reload via service worker; manifest valid).
+Last results (v1.2): **67** Vitest tests, **20** server tests, **94** Playwright tests pass (88 demo-mode: all routes × light/dark × 3 viewports, RTL, no horizontal scroll, axe WCAG 2.1 AA, no console errors, 44px targets, theme, notification sheet, Vazirmatn, offline SW, manifest; 6 real-server: OTP login + axe, request → admin approval → notification, offline queue → resend, SOS SMS, admin panel, logout). The `server` Playwright project builds `dist-server/` and starts the API itself (fresh DB in the OS temp dir, codes read from `SMS_LOG_FILE`).
 
 **Republishing the preview:** build the artifact, then publish `dist-artifact/caspian-pro.html` with the Artifact tool using `url: https://claude.ai/artifact/KoNaM8pDon9H8KWJDRg9xh` (read it first from a new conversation). The preview loads React 18.3.1 UMD from cdnjs and Vazirmatn from Google Fonts; everything else is inlined.
 
@@ -178,12 +245,16 @@ Last results (v1.1): **61** Vitest tests and **88** Playwright tests pass (all r
 - The artifact frame blocks downloads, so «ذخیره کارت» works only in the real app.
 - `tsconfig.node.json` needs `DOM` lib for e2e files.
 
+- GitHub Actions logs and artifacts can't be downloaded from the sandbox (blob storage 403). Read failures from check-run annotations: `gh api repos/alirezamolayari-prog/caspian-pro/check-runs/<job id>/annotations`.
+- `web-push` always uses HTTPS, so it can't be tested against a plain-HTTP fake; the server test checks `generateRequestDetails` instead.
+- Hono: tenant auth middleware is mounted on `/api`, so it explicitly skips `/api/admin/*`.
+- `pgrep -af "src/index.ts" | xargs kill` inside a command that contains that string kills its own shell (same gotcha as vite preview).
+- Server-mode builds go to `dist-server/` for e2e only; production uses `npm run build:server` → `dist/`.
+- `.env*` is gitignored except `.env.server` (sets `VITE_API_URL=/`) and `.env.example`.
+
 ## 11. Suggested next steps
 
-1. Watch the GitHub Actions CI run on `main` and fix anything red (never observed yet).
-2. Login (tenant phone + OTP) and load `STORE` from the server.
-3. Real backend for tickets/notifications (replace `api/mock.ts`), offline queue for submissions.
-4. Connect the parking software through `ParkingSource`; add a «یادآوری پایان اشتراک» notification at 7 days.
-5. Web push server (VAPID) and subscription upload after permission is granted.
-6. Package for Android as a TWA (Bubblewrap) with `assetlinks.json`; host `dist/` on HTTPS.
-7. Persian user guide, and a CHANGELOG once releases start.
+1. **Alireza:** get a server inside Iran, a domain, a Kavenegar account with a verify template, a proxy for FCM, and the parking software's API details. Then deploy with `docs/DEPLOY.md`.
+2. Fill the real store list (CSV) and test with 3–5 tenants before all 80.
+3. Build the Android APK with the real domain; publish on Bazaar/Myket or share directly.
+4. Optional: management side inside the Caspian Owner Flutter app (same `/api/admin/*` endpoints), daily backup to another host, SMS fallback for important notifications when push is unavailable.

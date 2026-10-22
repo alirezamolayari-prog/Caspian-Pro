@@ -1,3 +1,4 @@
+import { appendFileSync } from 'node:fs';
 /**
  * SMS sending. `console` prints to the server log (for testing before an SMS
  * panel exists). `kavenegar` uses the Kavenegar REST API. To add another panel
@@ -12,12 +13,18 @@ export interface SmsProvider {
   send(phone: string, message: string): Promise<void>;
 }
 
+/** Also appends to `SMS_LOG_FILE` when set (used by the browser tests to read the code). */
+const logLine = (line: string) => {
+  console.log(line);
+  if (process.env.SMS_LOG_FILE) appendFileSync(process.env.SMS_LOG_FILE, line + '\n');
+};
+
 export const consoleSms: SmsProvider = {
   async sendOtp(phone, code) {
-    console.log(`[sms] login code for ${phone}: ${code}`);
+    logLine(`[sms] login code for ${phone}: ${code}`);
   },
   async send(phone, message) {
-    console.log(`[sms] to ${phone}: ${message}`);
+    logLine(`[sms] to ${phone}: ${message.replace(/\n/g, ' | ')}`);
   },
 };
 

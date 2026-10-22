@@ -44,7 +44,7 @@ export function HomePage() {
       <HubHeader
         greeting={`سلام ${STORE.manager}`}
         title={STORE.name}
-        caption={`پلاک ${STORE.unit} – ${STORE.floor}`}
+        caption={`پلاک ${toFa(STORE.unit)} – ${STORE.floor}`}
       />
       <div className="flex flex-col gap-6 px-4">
         {HOME_GROUPS.map((group, gi) => (

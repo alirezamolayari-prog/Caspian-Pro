@@ -32,7 +32,12 @@ export function createPusher(config: Config, db: Db, send?: Sender): Pusher {
   if (enabled && !send) webpush.setVapidDetails(subject, publicKey, privateKey);
   const deliver: Sender =
     send ??
-    ((sub, body) => webpush.sendNotification(sub, body, { TTL: 24 * 3600, urgency: 'high' }));
+    ((sub, body) =>
+      webpush.sendNotification(sub, body, {
+        TTL: 24 * 3600,
+        urgency: 'high',
+        ...(config.vapid.proxy ? { proxy: config.vapid.proxy } : {}),
+      }));
 
   return {
     enabled,

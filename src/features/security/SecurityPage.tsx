@@ -13,6 +13,7 @@ import { displayId } from '../../lib/ids';
 import { toFa } from '../../lib/persian';
 import { isPersonName, isTimeRange, parseTime } from '../../lib/validators';
 import { localDateKey, useSecurity } from '../../store/security';
+import { useStoreInfo } from '../../store/session';
 import { useUi } from '../../store/ui';
 import { PassCard } from './PassCard';
 
@@ -22,6 +23,7 @@ type Day = 'today' | 'tomorrow';
 
 function SosSection() {
   const toast = useUi((s) => s.toast);
+  const store = useStoreInfo();
   const [step, setStep] = useState<0 | 1 | 2>(0);
   const [kind, setKind] = useState<Emergency>('سرقت یا درگیری');
   const [sending, setSending] = useState(false);
@@ -142,7 +144,11 @@ function SosSection() {
         }
       >
         <p className="text-[15px] leading-7 text-ink">
-          با تایید، نیروی حراست برای «{kind}» فوراً به <strong>پلاک ۲۴ – همکف</strong> اعزام می‌شود.
+          با تایید، نیروی حراست برای «{kind}» فوراً به{' '}
+          <strong>
+            پلاک {toFa(store.unit)} – {store.floor}
+          </strong>{' '}
+          اعزام می‌شود.
         </p>
       </Modal>
     </Card>

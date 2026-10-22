@@ -31,7 +31,13 @@ export interface Config {
   };
   /** Phones that receive an SMS when a tenant presses the emergency button. */
   securityPhones: string[];
-  vapid: { publicKey: string; privateKey: string; subject: string };
+  vapid: {
+    publicKey: string;
+    privateKey: string;
+    subject: string;
+    /** HTTP proxy for reaching push services (Google FCM is filtered in Iran). */
+    proxy: string;
+  };
   parking: {
     provider: 'mock' | 'http';
     /** Base URL of the parking software; `GET {url}/subscriptions/{storeId}` must return the subscription JSON. */
@@ -62,6 +68,7 @@ export function loadConfig(overrides: Partial<Config> = {}): Config {
       publicKey: env.VAPID_PUBLIC_KEY ?? '',
       privateKey: env.VAPID_PRIVATE_KEY ?? '',
       subject: env.VAPID_SUBJECT ?? 'mailto:admin@example.com',
+      proxy: env.PUSH_PROXY ?? '',
     },
     parking: {
       provider: env.PARKING_PROVIDER === 'http' ? 'http' : 'mock',

@@ -100,8 +100,11 @@ export function createApp(deps: Deps) {
   const { config, services, auth, parking, sms } = deps;
   const app = new Hono<Env>();
   const authLimit = limiter(20, 60_000);
+  // nginx sets X-Real-IP; the first X-Forwarded-For entry can be forged by the client.
   const ip = (c: Context) =>
-    c.req.header('x-forwarded-for')?.split(',')[0]?.trim() || c.req.header('x-real-ip') || 'local';
+    c.req.header('x-real-ip') ||
+    c.req.header('x-forwarded-for')?.split(',').pop()?.trim() ||
+    'local';
 
   app.use('*', async (c, next) => {
     await next();

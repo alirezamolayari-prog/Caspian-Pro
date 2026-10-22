@@ -1,0 +1,15 @@
+# systemd unit: sudo cp deploy/caspian-pro.service /etc/systemd/system/ && sudo systemctl enable --now caspian-pro
+[Unit]
+Description=Caspian Pro server
+After=network.target
+
+[Service]
+User=caspian
+WorkingDirectory=/opt/caspian-pro/server
+ExecStart=/usr/bin/npm start
+Restart=always
+RestartSec=3
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target

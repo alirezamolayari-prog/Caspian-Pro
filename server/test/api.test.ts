@@ -378,3 +378,65 @@ describe('android', () => {
     assert.deepEqual(await r.json(), []);
   });
 });
+
+describe('web push delivery', () => {
+  it('builds an encrypted, VAPID-signed request with the configured keys', async () => {
+    const webpush = (await import('web-push')).default;
+    const { createECDH, randomBytes } = await import('node:crypto');
+    const keys = webpush.generateVAPIDKeys();
+    const ecdh = createECDH('prime256v1');
+    ecdh.generateKeys();
+    const sub = {
+      endpoint: 'https://fcm.googleapis.com/fcm/send/abc',
+      keys: {
+        p256dh: ecdh.getPublicKey().toString('base64url'),
+        auth: randomBytes(16).toString('base64url'),
+      },
+    };
+    const details = webpush.generateRequestDetails(
+      sub,
+      JSON.stringify({ title: 'سلام', body: 'تست', url: '#/requests' }),
+      {
+        TTL: 3600,
+        vapidDetails: {
+          subject: 'mailto:test@caspian.ir',
+          publicKey: keys.publicKey,
+          privateKey: keys.privateKey,
+        },
+      },
+    );
+    assert.equal(details.headers['Content-Encoding'], 'aes128gcm');
+    assert.match(String(details.headers.Authorization), /^vapid t=.+, k=/);
+    assert.ok((details.body as Buffer).length > 100);
+
+    const db = openDb(':memory:');
+    const config = loadConfig({
+      staticDir: null,
+      vapid: {
+        publicKey: keys.publicKey,
+        privateKey: keys.privateKey,
+        subject: 'mailto:t@c.ir',
+        proxy: '',
+      },
+    });
+    const pusher = createPusher(config, db);
+    assert.equal(pusher.enabled, true);
+    assert.equal(pusher.publicKey, keys.publicKey);
+  });
+
+  it('forgets subscriptions the push service says are gone', async () => {
+    const db = openDb(':memory:');
+    const config = loadConfig({ staticDir: null });
+    const pusher = createPusher(config, db, async () => {
+      throw Object.assign(new Error('gone'), { statusCode: 410 });
+    });
+    const services = new Services(db, pusher, null);
+    services.upsertStore(
+      { id: 'u1', name: 'غرفه', unit: '1', floor: 'همکف', manager: 'آقای الف', category: '' },
+      [],
+    );
+    services.savePushSub('u1', '09120000001', { endpoint: 'https://x/1', p256dh: 'k', auth: 'a' });
+    await pusher.toStore('u1', { title: 't', body: 'b', url: '#/' });
+    assert.equal(db.prepare('SELECT COUNT(*) AS n FROM push_subs').get()!.n, 0);
+  });
+});

@@ -12,3 +12,9 @@ dist-artifact/
 !.env.example
 server/data/
 dist-server/
+*.keystore
+android/app/
+android/build/
+android/*.apk
+android/*.aab
+android/.gradle/
